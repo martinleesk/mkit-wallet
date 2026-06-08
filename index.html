@@ -1050,6 +1050,20 @@
         </div>
       </div>
 
+      <!-- Big Expense Pie Chart -->
+      <div class="chart-card" style="margin-bottom:24px;padding:32px">
+        <div class="chart-header">
+          <div class="chart-title">📊 支出分佈</div>
+          <div id="analyticsPieLabel" style="font-size:14px;color:var(--text-secondary)"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:40px">
+          <div class="chart-canvas-wrap" style="width:280px;height:280px;flex-shrink:0">
+            <canvas id="analyticsPieChart"></canvas>
+          </div>
+          <div class="category-legend" id="analyticsPieLegend" style="flex:1;grid-template-columns:repeat(2,1fr)"></div>
+        </div>
+      </div>
+
       <!-- Month Comparison Table -->
       <div class="chart-card" style="margin-bottom:24px">
         <div class="chart-header">
@@ -1800,6 +1814,52 @@ function renderAnalytics() {
     prevNet = m.net;
   });
   tableBody.innerHTML = tableHtml || '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted)">暫無數據</td></tr>';
+  
+  // Expense Pie Chart
+  const pieCtx = document.getElementById('analyticsPieChart')?.getContext('2d');
+  if (pieCtx) {
+    const catMap = {};
+    allTransactions.filter(t => t.year === year && t.amount < 0).forEach(t => {
+      catMap[t.category] = (catMap[t.category] || 0) + Math.abs(t.amount);
+    });
+    const pieLabels = Object.keys(catMap);
+    const pieValues = Object.values(catMap);
+    const pieTotal = pieValues.reduce((s, v) => s + v, 0);
+    const pieColors = ['#ff6b6b', '#ffd93d', '#6bcbff', '#a855f7', '#4ade80', '#ff9f43'];
+    const pieIcons = ['🎭', '🛍️', '🍔', '📱', '🚗', '💰'];
+    
+    document.getElementById('analyticsPieLabel').textContent = `總支出: HKD ${pieTotal.toLocaleString()}`;
+    
+    if (window._analyticsPieChart) window._analyticsPieChart.destroy();
+    window._analyticsPieChart = new Chart(pieCtx, {
+      type: 'doughnut',
+      data: {
+        labels: pieLabels,
+        datasets: [{
+          data: pieValues,
+          backgroundColor: pieColors.slice(0, pieLabels.length),
+          borderWidth: 0,
+          cutout: '60%'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } }
+      }
+    });
+    
+    // Legend
+    const legend = document.getElementById('analyticsPieLegend');
+    legend.innerHTML = pieLabels.map((l, i) => {
+      const pct = ((pieValues[i] / pieTotal) * 100).toFixed(0);
+      return `<div class="legend-item">
+        <span class="legend-dot" style="background:${pieColors[i]}"></span>
+        <span class="legend-label">${pieIcons[i % pieIcons.length]} ${l}</span>
+        <span class="legend-value">${pct}%</span>
+      </div>`;
+    }).join('');
+  }
   
   // Category charts
   const catColors = { '娛樂': '#ff6b6b', '購物': '#ffd93d', '餐飲': '#6bcbff', '數位服務': '#a855f7' };
