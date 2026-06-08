@@ -1211,9 +1211,10 @@
       
       <div class="nav-divider"></div>
       
-      <div class="nav-item">
+      <div class="nav-item" onclick="toggleTheme()" title="切換深色/淺色模式">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         <span>設定</span>
+        <span id="themeIconSidebar" style="margin-left:auto;font-size:14px">🌙</span>
       </div>
     </nav>
     
@@ -1243,9 +1244,25 @@
           <span id="currentMonth">2026年5月</span>
           <span>▼</span>
         </div>
-        <button class="theme-toggle" onclick="toggleTheme()" title="切換深色/淺色模式">
-          <span id="themeIcon">🌙</span>
-        </button>
+      </div>
+    </div>
+
+    <!-- Filter Bar (moved above stats) -->
+    <div class="filter-bar animate delay-1">
+      <div class="filter-group">
+        <div class="filter-chip active" onclick="filterChannel('all')">全部</div>
+        <div class="filter-chip" onclick="filterChannel('cathay')">國泰</div>
+        <div class="filter-chip" onclick="filterChannel('hsbc')">HSBC</div>
+        <div class="filter-chip" onclick="filterChannel('alipay')">Alipay</div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-chip active" onclick="filterCat('all')">全部</div>
+        <div class="filter-chip" onclick="filterCat('娛樂')">娛樂</div>
+        <div class="filter-chip" onclick="filterCat('購物')">購物</div>
+        <div class="filter-chip" onclick="filterCat('餐飲')">餐飲</div>
+        <div class="filter-chip" onclick="filterCat('數位服務')">數位</div>
+        <div class="filter-chip" onclick="filterCat('交通')">交通</div>
+        <div class="filter-chip" onclick="filterCat('收入')">收入</div>
       </div>
     </div>
 
@@ -1274,38 +1291,6 @@
         <div class="stat-label">🎯 儲蓄率</div>
         <div class="stat-value green" id="savingsRate">0.7%</div>
         <div class="stat-trend" id="savingsTrend">偏低，建議提高</div>
-      </div>
-    </div>
-
-    <!-- 選擇區域 -->
-    <div class="choose-section animate delay-2">
-      <div class="choose-date" onclick="openMonthPicker()">
-        <span>📅</span>
-        <span id="chooseMonth">2026年5月</span>
-        <span>▼</span>
-      </div>
-      <div class="choose-options">
-        <div class="choose-option active" onclick="setChooseAll(true)" id="chooseAllBtn">選擇全部</div>
-        <div class="choose-option" onclick="setChooseAll(false)" id="chooseIndivBtn">選擇個別</div>
-      </div>
-    </div>
-
-    <!-- Filter Bar -->
-    <div class="filter-bar animate delay-3">
-      <div class="filter-group">
-        <div class="filter-chip active" onclick="filterChannel('all')">全部</div>
-        <div class="filter-chip" onclick="filterChannel('cathay')">國泰</div>
-        <div class="filter-chip" onclick="filterChannel('hsbc')">HSBC</div>
-        <div class="filter-chip" onclick="filterChannel('alipay')">Alipay</div>
-      </div>
-      <div class="filter-group">
-        <div class="filter-chip active" onclick="filterCat('all')">全部</div>
-        <div class="filter-chip" onclick="filterCat('娛樂')">娛樂</div>
-        <div class="filter-chip" onclick="filterCat('購物')">購物</div>
-        <div class="filter-chip" onclick="filterCat('餐飲')">餐飲</div>
-        <div class="filter-chip" onclick="filterCat('數位服務')">數位</div>
-        <div class="filter-chip" onclick="filterCat('交通')">交通</div>
-        <div class="filter-chip" onclick="filterCat('收入')">收入</div>
       </div>
     </div>
 
@@ -1705,8 +1690,9 @@ document.addEventListener('DOMContentLoaded', () => {
 function toggleTheme() {
   currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', currentTheme);
-  document.getElementById('themeIcon').textContent = currentTheme === 'dark' ? '🌙' : '☀️';
-  
+  const icon = currentTheme === 'dark' ? '🌙' : '☀️';
+  document.getElementById('themeIconSidebar').textContent = icon;
+
   // Re-render charts with new colors
   setTimeout(() => {
     initCharts();
