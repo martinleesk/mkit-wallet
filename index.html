@@ -778,6 +778,7 @@
   @media (max-width: 768px) {
     .sidebar {
       transform: translateX(-100%);
+      width: 240px;
     }
     
     .sidebar.open {
@@ -786,7 +787,7 @@
     
     .main-content {
       margin-left: 0;
-      padding: 16px;
+      padding: 12px;
     }
     
     .menu-toggle {
@@ -795,6 +796,11 @@
     
     .top-bar {
       flex-wrap: wrap;
+      gap: 12px;
+    }
+    
+    .top-left {
+      width: 100%;
     }
     
     .search-box {
@@ -803,8 +809,14 @@
       flex-basis: 100%;
     }
     
+    .top-right {
+      width: 100%;
+      justify-content: space-between;
+    }
+    
     .stats-grid {
       grid-template-columns: 1fr;
+      gap: 12px;
     }
     
     .budget-grid {
@@ -820,10 +832,103 @@
       overflow-x: auto;
       flex-wrap: nowrap;
       padding-bottom: 8px;
+      gap: 8px;
     }
     
     .filter-chip, .filter-select {
       white-space: nowrap;
+    }
+    
+    /* Analytics / Investment page responsive */
+    .chart-card[style*="padding:32px"] {
+      padding: 16px !important;
+    }
+    
+    .chart-card[style*="padding:32px"] > div:last-child {
+      flex-direction: column !important;
+      align-items: center !important;
+      gap: 20px !important;
+    }
+    
+    .chart-card[style*="padding:32px"] .chart-canvas-wrap {
+      width: 200px !important;
+      height: 200px !important;
+    }
+    
+    .chart-card[style*="padding:32px"] .category-legend {
+      grid-template-columns: 1fr 1fr !important;
+      width: 100% !important;
+    }
+    
+    .charts-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    /* Mobile nav items */
+    .nav-item span {
+      display: inline;
+    }
+    
+    /* Stat cards on mobile */
+    .stat-card {
+      padding: 16px;
+    }
+    
+    .stat-value {
+      font-size: 22px;
+    }
+    
+    /* Modal on mobile */
+    .modal {
+      max-width: 95%;
+      margin: 16px;
+    }
+    
+    /* Month picker mobile */
+    .month-badge {
+      font-size: 12px;
+      padding: 8px 12px;
+    }
+  }
+  
+  /* Extra small screens */
+  @media (max-width: 480px) {
+    .main-content {
+      padding: 8px;
+    }
+    
+    .stats-grid {
+      gap: 8px;
+    }
+    
+    .stat-card {
+      padding: 12px;
+    }
+    
+    .stat-label {
+      font-size: 11px;
+    }
+    
+    .stat-value {
+      font-size: 18px;
+    }
+    
+    .chart-card[style*="padding:32px"] .chart-canvas-wrap {
+      width: 160px !important;
+      height: 160px !important;
+    }
+    
+    .chart-card[style*="padding:32px"] .category-legend {
+      grid-template-columns: 1fr !important;
+    }
+    
+    .sidebar {
+      width: 200px;
+    }
+    
+    .nav-item {
+      padding: 10px 12px;
+      font-size: 13px;
     }
   }
   
