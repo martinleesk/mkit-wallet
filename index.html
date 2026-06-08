@@ -1687,9 +1687,8 @@ function filterChannel(ch) {
 function filterCat(cat) {
   currentCat = cat;
   document.querySelectorAll('.filter-group:nth-child(3) .filter-chip').forEach(el => {
-    const catName = el.textContent.replace(/[🎭🛍️🍔📱🚗💰]/g, '').trim();
-    const catMap = { '娛樂': '娛樂', '購物': '購物', '餐飲': '餐飲', '數位': '數位服務', '交通': '交通', '收入': '收入', '全部': 'all' };
-    el.classList.toggle('active', cat === 'all' ? catName === '全部' : catName === cat || (cat !== 'all' && catName === cat));
+    const catName = el.textContent.trim();
+    el.classList.toggle('active', cat === 'all' ? catName === '全部' : catName === cat);
   });
   currentPage = 1;
   buildTransactionList();
