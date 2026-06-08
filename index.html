@@ -333,6 +333,74 @@
   .stat-trend.up { color: var(--accent-green); }
   .stat-trend.down { color: var(--accent-red); }
 
+  /* 選擇區域 */
+  .choose-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .choose-date {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .choose-date:hover {
+    border-color: var(--accent-teal);
+  }
+
+  .choose-date span:first-child {
+    font-size: 16px;
+  }
+
+  .choose-date span:nth-child(2) {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .choose-date span:last-child {
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .choose-options {
+    display: flex;
+    gap: 8px;
+  }
+
+  .choose-option {
+    padding: 8px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .choose-option:hover {
+    border-color: var(--accent-teal);
+    color: var(--text-primary);
+  }
+
+  .choose-option.active {
+    background: var(--accent-teal);
+    border-color: var(--accent-teal);
+    color: #000;
+    font-weight: 600;
+  }
+
   /* Filter Bar */
   .filter-bar {
     display: flex;
@@ -1169,11 +1237,6 @@
         </div>
       </div>
       
-      <div class="search-box">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="searchInput" placeholder="搜尋交易記錄..." oninput="handleSearch(this.value)">
-      </div>
-      
       <div class="top-right">
         <div class="month-badge" onclick="openMonthPicker()">
           <span>📅</span>
@@ -1214,30 +1277,21 @@
       </div>
     </div>
 
-    <!-- Filter Bar -->
-    <div class="filter-bar animate delay-2">
-      <div class="filter-group">
-        <select class="filter-select" id="filterYear" onchange="applyFilters()">
-          <option value="all">全部年份</option>
-          <option value="2026">2026年</option>
-          <option value="2025">2025年</option>
-        </select>
-        <select class="filter-select" id="filterMonth" onchange="applyFilters()">
-          <option value="all">全部月份</option>
-          <option value="1月">1月</option>
-          <option value="2月">2月</option>
-          <option value="3月">3月</option>
-          <option value="4月">4月</option>
-          <option value="5月" selected>5月</option>
-          <option value="6月">6月</option>
-          <option value="7月">7月</option>
-          <option value="8月">8月</option>
-          <option value="9月">9月</option>
-          <option value="10月">10月</option>
-          <option value="11月">11月</option>
-          <option value="12月">12月</option>
-        </select>
+    <!-- 選擇區域 -->
+    <div class="choose-section animate delay-2">
+      <div class="choose-date" onclick="openMonthPicker()">
+        <span>📅</span>
+        <span id="chooseMonth">2026年5月</span>
+        <span>▼</span>
       </div>
+      <div class="choose-options">
+        <div class="choose-option active" onclick="setChooseAll(true)" id="chooseAllBtn">選擇全部</div>
+        <div class="choose-option" onclick="setChooseAll(false)" id="chooseIndivBtn">選擇個別</div>
+      </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar animate delay-3">
       <div class="filter-group">
         <div class="filter-chip active" onclick="filterChannel('all')">全部</div>
         <div class="filter-chip" onclick="filterChannel('cathay')">國泰</div>
@@ -1253,6 +1307,12 @@
         <div class="filter-chip" onclick="filterCat('交通')">交通</div>
         <div class="filter-chip" onclick="filterCat('收入')">收入</div>
       </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-box animate delay-4">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="搜尋交易記錄..." oninput="handleSearch(this.value)">
     </div>
 
     <!-- Charts Grid -->
@@ -1684,6 +1744,18 @@ function filterChannel(ch) {
   updateCharts();
 }
 
+function setChooseAll(isAll) {
+  const allBtn = document.getElementById('chooseAllBtn');
+  const indivBtn = document.getElementById('chooseIndivBtn');
+  if (isAll) {
+    allBtn.classList.add('active');
+    indivBtn.classList.remove('active');
+  } else {
+    allBtn.classList.remove('active');
+    indivBtn.classList.add('active');
+  }
+}
+
 function filterCat(cat) {
   currentCat = cat;
   const catTextMap = {
@@ -2016,7 +2088,9 @@ function closeMonthPicker() {
 function applyMonthPicker() {
   const year = document.getElementById('pickerYear').value;
   const month = document.getElementById('pickerMonth').value;
-  document.getElementById('currentMonth').textContent = year + '年' + month;
+  const displayText = year + '年' + month;
+  document.getElementById('currentMonth').textContent = displayText;
+  document.getElementById('chooseMonth').textContent = displayText;
   document.getElementById('filterYear').value = year;
   document.getElementById('filterMonth').value = month;
   applyFilters();
