@@ -892,6 +892,8 @@
       flex-wrap: wrap;
       margin-bottom: 16px;
       gap: 6px;
+      width: 100%;
+      max-width: 100%;
     }
     
     .filter-bar::after {
@@ -902,6 +904,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 4px;
+      width: 100%;
     }
     
     .filter-chip, .filter-select {
@@ -909,6 +912,7 @@
       font-size: 10px;
       padding: 4px 7px;
       border-radius: 6px;
+      flex-shrink: 0;
     }
     
     .budget-grid {
@@ -928,28 +932,42 @@
     
     /* Analytics / Investment page responsive */
     .chart-card[style*="padding:32px"] {
-      padding: 12px !important;
+      padding: 10px !important;
     }
     
     .chart-card[style*="padding:32px"] > div:last-child {
       flex-direction: column !important;
       align-items: center !important;
-      gap: 16px !important;
+      gap: 12px !important;
     }
     
     .chart-card[style*="padding:32px"] .chart-canvas-wrap {
-      width: 180px !important;
-      height: 180px !important;
+      width: 140px !important;
+      height: 140px !important;
     }
     
     .chart-card[style*="padding:32px"] .category-legend {
       grid-template-columns: 1fr 1fr !important;
       width: 100% !important;
-      font-size: 11px;
+      font-size: 10px;
+      gap: 4px;
     }
     
     .charts-grid {
       grid-template-columns: 1fr;
+    }
+    
+    .chart-header {
+      font-size: 12px;
+      padding: 8px 10px;
+    }
+    
+    .chart-title {
+      font-size: 12px;
+    }
+    
+    .chart-period {
+      font-size: 10px;
     }
     
     /* Stat cards on mobile */
