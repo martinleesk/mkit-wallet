@@ -1266,6 +1266,12 @@
       </div>
     </div>
 
+    <!-- Search Bar -->
+    <div class="search-box animate delay-2">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="搜尋交易記錄..." oninput="handleSearch(this.value)">
+    </div>
+
     <!-- Stats Cards -->
     <div class="stats-grid animate delay-1">
       <div class="stat-card income">
@@ -1294,13 +1300,7 @@
       </div>
     </div>
 
-    <!-- Search Bar -->
-    <div class="search-box animate delay-4">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="searchInput" placeholder="搜尋交易記錄..." oninput="handleSearch(this.value)">
-    </div>
-
-    <!-- Charts Grid -->
+        <!-- Stats Cards -->
     <div class="charts-grid animate delay-3">
       <div class="chart-card">
         <div class="chart-header">
@@ -1730,16 +1730,15 @@ function filterChannel(ch) {
   updateCharts();
 }
 
-function setChooseAll(isAll) {
-  const allBtn = document.getElementById('chooseAllBtn');
-  const indivBtn = document.getElementById('chooseIndivBtn');
-  if (isAll) {
-    allBtn.classList.add('active');
-    indivBtn.classList.remove('active');
-  } else {
-    allBtn.classList.remove('active');
-    indivBtn.classList.add('active');
-  }
+function filterChannel(ch) {
+  currentChannel = ch;
+  document.querySelectorAll('.filter-bar .filter-group:nth-child(1) .filter-chip').forEach(el => {
+    el.classList.toggle('active', el.textContent.includes(ch === 'all' ? '全部' : ch === 'cathay' ? '國泰' : ch === 'hsbc' ? 'HSBC' : 'Alipay'));
+  });
+  currentPage = 1;
+  buildTransactionList();
+  updateStats();
+  updateCharts();
 }
 
 function filterCat(cat) {
@@ -1749,7 +1748,7 @@ function filterCat(cat) {
     '數位服務': '數位', '交通': '交通', '收入': '收入'
   };
   const targetText = catTextMap[cat] || cat;
-  document.querySelectorAll('.filter-group:nth-child(3) .filter-chip').forEach(el => {
+  document.querySelectorAll('.filter-bar .filter-group:nth-child(2) .filter-chip').forEach(el => {
     el.classList.toggle('active', el.textContent.includes(targetText));
   });
   currentPage = 1;
