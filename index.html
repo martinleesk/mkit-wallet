@@ -343,9 +343,10 @@
     right: 0;
     top: 0;
     bottom: 4px;
-    width: 40px;
-    background: linear-gradient(to right, transparent, var(--bg-primary));
+    width: 50px;
+    background: linear-gradient(to right, transparent 30%, rgba(15,15,20,0.95));
     pointer-events: none;
+    border-radius: 0 8px 8px 0;
   }
   
   .filter-group {
@@ -857,8 +858,17 @@
     }
     
     .stats-grid {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       gap: 12px;
+    }
+    
+    .filter-bar {
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    
+    .filter-bar::after {
+      display: none;
     }
     
     .budget-grid {
