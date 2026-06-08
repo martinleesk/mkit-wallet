@@ -2096,7 +2096,11 @@ function applyMonthPicker() {
   buildTransactionList();
   updateStats();
   updateCharts();
-  closeMonthPicker();
+  
+  // 延遲關閉modal確保資料更新完成
+  setTimeout(() => {
+    closeMonthPicker();
+  }, 150);
 }
 
 // Tab switching
