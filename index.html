@@ -2075,10 +2075,27 @@ function applyMonthPicker() {
   const month = document.getElementById('pickerMonth').value;
   const displayText = year + '年' + month;
   document.getElementById('currentMonth').textContent = displayText;
-  document.getElementById('chooseMonth').textContent = displayText;
-  document.getElementById('filterYear').value = year;
-  document.getElementById('filterMonth').value = month;
-  applyFilters();
+  
+  // 直接更新全域變量
+  currentYear = year;
+  currentMonth = month;
+  
+  // 重置篩選狀態
+  currentChannel = 'all';
+  currentCat = 'all';
+  
+  // 更新chips視覺狀態
+  document.querySelectorAll('.filter-bar .filter-group:nth-child(1) .filter-chip').forEach(el => {
+    el.classList.toggle('active', el.textContent.includes('全部'));
+  });
+  document.querySelectorAll('.filter-bar .filter-group:nth-child(2) .filter-chip').forEach(el => {
+    el.classList.toggle('active', el.textContent.includes('全部'));
+  });
+  
+  currentPage = 1;
+  buildTransactionList();
+  updateStats();
+  updateCharts();
   closeMonthPicker();
 }
 
