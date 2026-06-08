@@ -2,428 +2,948 @@
 <html lang="zh-HK">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MKiT 數字錢包 Pro</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 <style>
+  :root {
+    --bg-primary: #0a0a0f;
+    --bg-secondary: #111118;
+    --bg-card: #1a1a2e;
+    --bg-card-hover: #222238;
+    --text-primary: #ffffff;
+    --text-secondary: #888;
+    --text-muted: #666;
+    --accent-teal: #00d4aa;
+    --accent-red: #ff6b6b;
+    --accent-yellow: #ffd93d;
+    --accent-purple: #a855f7;
+    --accent-blue: #6bcbff;
+    --accent-green: #4ade80;
+    --border-color: rgba(255,255,255,0.08);
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+  
+  [data-theme="light"] {
+    --bg-primary: #f5f7fa;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f0f2f5;
+    --text-primary: #1a1a2e;
+    --text-secondary: #666;
+    --text-muted: #999;
+    --border-color: rgba(0,0,0,0.1);
+    --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  }
+  
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  
   body { 
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
-    background: #0a0a0f; color: #fff; min-height: 100vh;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+    background: var(--bg-primary); 
+    color: var(--text-primary); 
+    min-height: 100vh;
     -webkit-font-smoothing: antialiased;
   }
-  .phone-frame {
-    width: 430px; min-height: 932px;
-    margin: 20px auto;
-    background: #111118;
-    border-radius: 44px;
-    overflow: hidden;
+
+  /* Layout */
+  .app-container {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 260px;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    z-index: 100;
+    transition: transform 0.3s;
+  }
+  
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 12px 24px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 24px;
+  }
+  
+  .logo-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--accent-teal), var(--accent-blue));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+  
+  .logo-text {
+    font-size: 20px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent-teal), var(--accent-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .nav-section {
+    flex: 1;
+  }
+  
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 4px;
+    font-size: 15px;
+  }
+  
+  .nav-item:hover {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+  }
+  
+  .nav-item.active {
+    background: rgba(0,212,170,0.15);
+    color: var(--accent-teal);
+  }
+  
+  .nav-item svg { width: 22px; height: 22px; }
+  
+  .nav-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 16px 0;
+  }
+  
+  .sidebar-footer {
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+  }
+  
+  /* Main Content */
+  .main-content {
+    flex: 1;
+    margin-left: 260px;
+    padding: 24px 32px;
+    min-height: 100vh;
+  }
+
+  /* Top Bar */
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    gap: 24px;
+  }
+  
+  .top-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  .menu-toggle {
+    display: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .greeting-block {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .greeting { font-size: 14px; color: var(--text-secondary); }
+  .user-name { font-size: 24px; font-weight: 700; }
+  
+  .search-box {
+    flex: 1;
+    max-width: 400px;
     position: relative;
-    box-shadow: 0 30px 80px rgba(0,0,0,0.6);
   }
-  .status-bar {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 14px 28px 0; height: 58px;
-    background: #111118;
-  }
-  .status-time { font-size: 16px; font-weight: 600; }
-  .status-icons { display: flex; gap: 6px; align-items: center; opacity: 0; }
   
-  .header {
-    padding: 10px 24px 18px;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  .search-box input {
+    width: 100%;
+    padding: 12px 16px 12px 44px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
   }
-  .header-top {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 16px;
-  }
-  .greeting { font-size: 13px; color: #888; }
-  .user-name { font-size: 24px; font-weight: 700; margin-top: 2px; }
-  .month-selector {
-    display: flex; align-items: center; gap: 8px;
-    background: rgba(255,255,255,0.1); border-radius: 12px;
-    padding: 8px 14px; cursor: pointer;
-  }
-  .month-selector span { font-size: 14px; font-weight: 600; }
   
-  .nav-tabs {
-    display: flex; gap: 4px; padding: 0 4px;
+  .search-box input:focus {
+    border-color: var(--accent-teal);
   }
-  .nav-tab {
-    flex: 1; padding: 11px 8px; text-align: center;
-    font-size: 13px; font-weight: 500; color: #666;
-    background: transparent; border: none; border-radius: 12px;
-    cursor: pointer; transition: all 0.2s;
+  
+  .search-box input::placeholder {
+    color: var(--text-muted);
   }
-  .nav-tab.active {
-    background: rgba(255,255,255,0.15); color: #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  
+  .search-box svg {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    width: 18px;
+    height: 18px;
+  }
+  
+  .top-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .theme-toggle {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  
+  .theme-toggle:hover {
+    background: var(--bg-card-hover);
+  }
+  
+  .month-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  
+  .month-badge:hover {
+    background: var(--bg-card-hover);
   }
 
-  .content { padding: 18px 24px 110px; }
-
-  /* Summary Cards */
-  .summary-row {
-    display: grid; grid-template-columns: repeat(2, 1fr);
-    gap: 12px; margin-bottom: 16px;
+  /* Stats Cards */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 28px;
   }
-  .summary-card {
-    background: rgba(255,255,255,0.06);
-    border-radius: 18px; padding: 16px;
-    position: relative; overflow: hidden;
+  
+  .stat-card {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 20px 24px;
+    border: 1px solid var(--border-color);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s;
   }
-  .summary-card.income { border: 1px solid rgba(0,212,170,0.3); }
-  .summary-card.expense { border: 1px solid rgba(255,107,107,0.3); }
-  .summary-card.balance {
-    background: linear-gradient(135deg, #1e3a5f 0%, #0d2137 100%);
-    grid-column: span 2;
+  
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
   }
-  .card-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
-  .card-value { font-size: 22px; font-weight: 700; margin-top: 6px; }
-  .card-value.positive { color: #00d4aa; }
-  .card-value.negative { color: #ff6b6b; }
-  .card-trend { font-size: 11px; margin-top: 4px; }
-  .card-trend.up { color: #4ade80; }
-  .card-trend.down { color: #ff6b6b; }
-  .card-icon {
-    position: absolute; top: 12px; right: 12px;
-    font-size: 28px; opacity: 0.15;
+  
+  .stat-card.income { border-left: 4px solid var(--accent-teal); }
+  .stat-card.expense { border-left: 4px solid var(--accent-red); }
+  .stat-card.balance { border-left: 4px solid var(--accent-purple); }
+  .stat-card.savings { border-left: 4px solid var(--accent-green); }
+  
+  .stat-icon {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 32px;
+    opacity: 0.12;
   }
+  
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  
+  .stat-value {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  
+  .stat-value.positive { color: var(--accent-teal); }
+  .stat-value.negative { color: var(--accent-red); }
+  .stat-value.purple { color: var(--accent-purple); }
+  .stat-value.green { color: var(--accent-green); }
+  
+  .stat-trend {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  
+  .stat-trend.up { color: var(--accent-green); }
+  .stat-trend.down { color: var(--accent-red); }
 
   /* Filter Bar */
   .filter-bar {
-    display: flex; gap: 8px; margin-bottom: 16px;
-    overflow-x: auto; padding-bottom: 4px;
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    align-items: center;
   }
-  .filter-bar::-webkit-scrollbar { display: none; }
+  
+  .filter-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  
+  .filter-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  
+  .filter-select {
+    padding: 8px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-size: 13px;
+    cursor: pointer;
+    outline: none;
+  }
+  
+  .filter-select:focus {
+    border-color: var(--accent-teal);
+  }
+  
+  .filter-select option {
+    background: var(--bg-card);
+    color: var(--text-primary);
+  }
+  
   .filter-chip {
-    display: flex; align-items: center; gap: 6px;
-    padding: 8px 14px; border-radius: 20px;
-    background: rgba(255,255,255,0.08);
-    font-size: 12px; font-weight: 500; color: #888;
-    white-space: nowrap; cursor: pointer;
-    transition: all 0.2s; border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
   }
-  .filter-chip.active {
+  
+  .filter-chip:hover, .filter-chip.active {
     background: rgba(0,212,170,0.15);
-    color: #00d4aa;
+    color: var(--accent-teal);
     border-color: rgba(0,212,170,0.3);
   }
-  .filter-chip span { font-size: 14px; }
-  .filter-select {
-    padding: 8px 12px; border-radius: 20px;
-    background: rgba(255,255,255,0.08); color: #fff;
-    border: 1px solid rgba(255,255,255,0.1);
-    font-size: 12px; cursor: pointer; outline: none;
-  }
-  .filter-select option { background: #1a1a2e; color: #fff; }
 
-  /* Chart Section */
-  .chart-container {
-    background: rgba(255,255,255,0.04);
-    border-radius: 20px; padding: 18px;
-    margin-bottom: 16px;
-    min-height: 200px;
-    position: relative;
-    overflow: hidden;
+  /* Charts Grid */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 28px;
   }
+  
+  .chart-card {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid var(--border-color);
+  }
+  
   .chart-header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
   }
-  .chart-title { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-  .chart-period { font-size: 12px; color: #666; }
-  .chart-canvas { width: 100%; height: 180px; display: block; }
+  
+  .chart-title {
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .chart-period {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  
+  .chart-canvas-wrap {
+    position: relative;
+    height: 240px;
+  }
+  
+  .chart-canvas-wrap canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
 
   /* Budget Section */
   .budget-section {
-    background: rgba(255,255,255,0.04);
-    border-radius: 20px; padding: 18px;
-    margin-bottom: 16px;
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 28px;
   }
-  .budget-header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 16px;
+  
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
   }
-  .budget-title { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-  .budget-add {
-    display: flex; align-items: center; gap: 6px;
-    padding: 8px 14px; border-radius: 20px;
-    background: rgba(0,212,170,0.15); color: #00d4aa;
-    font-size: 12px; font-weight: 600; cursor: pointer;
+  
+  .section-title {
+    font-size: 18px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .btn-add {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    background: rgba(0,212,170,0.15);
+    color: var(--accent-teal);
     border: none;
-  }
-  .budget-item {
-    margin-bottom: 16px;
-  }
-  .budget-item-header {
-    display: flex; justify-content: space-between; margin-bottom: 8px;
-  }
-  .budget-category { font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
-  .budget-amounts { font-size: 12px; color: #888; }
-  .budget-bar-bg {
-    height: 8px; background: rgba(255,255,255,0.1);
-    border-radius: 4px; overflow: hidden;
-  }
-  .budget-bar-fill {
-    height: 100%; border-radius: 4px;
-    transition: width 0.5s ease;
-  }
-  .budget-bar-fill.green { background: linear-gradient(90deg, #00d4aa, #4ade80); }
-  .budget-bar-fill.yellow { background: linear-gradient(90deg, #ffd93d, #ffb347); }
-  .budget-bar-fill.red { background: linear-gradient(90deg, #ff6b6b, #ff4757); }
-
-  /* Forecast Section */
-  .forecast-section {
-    background: linear-gradient(135deg, #2d1f4e 0%, #1a1a2e 100%);
-    border-radius: 20px; padding: 18px;
-    margin-bottom: 16px;
-    min-height: 280px;
-    position: relative;
-    overflow: hidden;
-  }
-  .forecast-header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 16px;
-  }
-  .forecast-title { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-  .forecast-selector {
-    display: flex; gap: 4px;
-  }
-  .forecast-chip {
-    padding: 6px 12px; border-radius: 12px;
-    font-size: 12px; color: #888;
-    background: rgba(255,255,255,0.08); cursor: pointer;
-    border: none;
-  }
-  .forecast-chip.active {
-    background: rgba(168,85,247,0.3); color: #a855f7;
-  }
-  .forecast-value {
-    font-size: 32px; font-weight: 700;
-    background: linear-gradient(135deg, #a855f7, #ff6b6b);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  }
-  .forecast-note { font-size: 12px; color: #888; margin-top: 4px; }
-  .forecast-chart { margin-top: 16px; height: 120px; }
-
-  /* Comparison */
-  .comparison-section {
-    background: rgba(255,255,255,0.04);
-    border-radius: 20px; padding: 18px;
-    margin-bottom: 16px;
-  }
-  .comparison-header { display: flex; justify-content: space-between; margin-bottom: 16px; }
-  .comparison-title { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-  .comparison-grid {
-    display: grid; grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-  .comparison-item {
-    background: rgba(255,255,255,0.05);
-    border-radius: 14px; padding: 14px;
-  }
-  .comparison-label { font-size: 11px; color: #888; margin-bottom: 6px; }
-  .comparison-month { font-size: 16px; font-weight: 600; }
-  .comparison-change { font-size: 11px; margin-top: 4px; }
-  .comparison-change.positive { color: #4ade80; }
-  .comparison-change.negative { color: #ff6b6b; }
-
-  /* Transaction List */
-  .tx-section {
-    background: rgba(255,255,255,0.04);
-    border-radius: 20px; padding: 18px;
-    margin-bottom: 16px;
-  }
-  .tx-header { display: flex; justify-content: space-between; margin-bottom: 14px; }
-  .tx-title { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-  .tx-filter-btn {
-    display: flex; align-items: center; gap: 6px;
-    padding: 6px 12px; border-radius: 12px;
-    background: rgba(255,255,255,0.08); color: #888;
-    font-size: 12px; cursor: pointer; border: none;
-  }
-  .tx-list { max-height: none; overflow-y: visible; }
-  .tx-list::-webkit-scrollbar { display: none; }
-  .tx-date-label { font-size: 12px; color: #666; margin: 14px 0 8px; }
-  .tx-item {
-    display: flex; align-items: center; gap: 14px;
-    padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
-  }
-  .tx-item:last-child { border-bottom: none; }
-  .tx-icon {
-    width: 44px; height: 44px; border-radius: 14px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
-  }
-  .tx-info { flex: 1; min-width: 0; }
-  .tx-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .tx-meta { font-size: 11px; color: #666; margin-top: 3px; display: flex; gap: 8px; }
-  .tx-card-tag {
-    padding: 2px 8px; border-radius: 8px;
-    font-size: 10px; font-weight: 600;
-  }
-  .tx-card-tag.cathay { background: rgba(255,107,107,0.2); color: #ff6b6b; }
-  .tx-card-tag.hsbc { background: rgba(0,200,255,0.2); color: #00c8ff; }
-  .tx-card-tag.alipay { background: rgba(0,212,170,0.2); color: #00d4aa; }
-  .tx-amount { font-size: 14px; font-weight: 600; text-align: right; }
-  .tx-amount.debit { color: #fff; }
-  .tx-amount.credit { color: #4ade80; }
-
-  /* Pagination */
-  .pagination {
-    display: flex; align-items: center; justify-content: center;
-    gap: 16px; padding: 16px 0 8px;
-  }
-  .page-btn {
-    width: 36px; height: 36px; border-radius: 50%;
-    background: rgba(255,255,255,0.08); border: none;
-    color: #fff; font-size: 14px; cursor: pointer;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
     transition: all 0.2s;
   }
-  .page-btn:hover { background: rgba(255,255,255,0.15); }
-  .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-  .page-info { font-size: 13px; color: #888; min-width: 50px; text-align: center; }
+  
+  .btn-add:hover {
+    background: rgba(0,212,170,0.25);
+  }
+  
+  .budget-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  
+  .budget-item {
+    background: var(--bg-primary);
+    border-radius: 14px;
+    padding: 18px;
+    border: 1px solid var(--border-color);
+  }
+  
+  .budget-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  
+  .budget-cat {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  
+  .budget-amounts {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  
+  .budget-bar-bg {
+    height: 8px;
+    background: var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .budget-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+  }
+  
+  .budget-bar-fill.green { background: linear-gradient(90deg, var(--accent-teal), var(--accent-green)); }
+  .budget-bar-fill.yellow { background: linear-gradient(90deg, var(--accent-yellow), #ffb347); }
+  .budget-bar-fill.red { background: linear-gradient(90deg, var(--accent-red), #ff4757); }
+  
+  .budget-alert {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--accent-red);
+  }
 
-  /* Bottom Nav */
-  .bottom-nav {
-    position: absolute; bottom: 0; left: 0; right: 0;
-    background: rgba(17, 17, 24, 0.97);
-    backdrop-filter: blur(24px);
-    padding: 14px 20px 38px;
-    display: flex; justify-content: space-around;
-    border-top: 1px solid rgba(255,255,255,0.06);
+  /* Transaction Section */
+  .tx-section {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 28px;
   }
-  .nav-item {
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
-    color: #555; cursor: pointer; transition: color 0.2s; padding: 4px;
+  
+  .tx-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
   }
-  .nav-item.active { color: #00d4aa; }
-  .nav-item svg { width: 26px; height: 26px; }
-  .nav-item span { font-size: 10px; }
+  
+  .tx-count {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  
+  .tx-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .tx-table th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .tx-table td {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 14px;
+  }
+  
+  .tx-table tr:hover td {
+    background: var(--bg-card-hover);
+  }
+  
+  .tx-icon-cell {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+  
+  .tx-name { font-weight: 500; }
+  .tx-meta { font-size: 12px; color: var(--text-muted); margin-top: 4px; display: flex; gap: 8px; }
+  
+  .tx-card-tag {
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  
+  .tx-card-tag.cathay { background: rgba(255,107,107,0.2); color: var(--accent-red); }
+  .tx-card-tag.hsbc { background: rgba(0,200,255,0.2); color: var(--accent-blue); }
+  .tx-card-tag.alipay { background: rgba(0,212,170,0.2); color: var(--accent-teal); }
+  
+  .tx-amount { font-weight: 600; text-align: right; }
+  .tx-amount.debit { color: var(--text-primary); }
+  .tx-amount.credit { color: var(--accent-green); }
+  
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 20px 0 8px;
+  }
+  
+  .page-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .page-btn:hover:not(:disabled) {
+    background: var(--accent-teal);
+    border-color: var(--accent-teal);
+  }
+  
+  .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .page-info { font-size: 13px; color: var(--text-muted); }
+
+  /* Category Legend */
+  .category-legend {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 16px;
+  }
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+  }
+  
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  
+  .legend-label { color: var(--text-secondary); flex: 1; }
+  .legend-value { font-weight: 600; }
 
   /* Modal */
   .modal-overlay {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
-    display: flex; align-items: flex-end; justify-content: center;
-    z-index: 1000; opacity: 0; pointer-events: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
     transition: opacity 0.3s;
   }
-  .modal-overlay.show { opacity: 1; pointer-events: auto; }
+  
+  .modal-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  
   .modal {
-    background: #1a1a2e; border-radius: 24px 24px 0 0;
-    width: 100%; max-width: 430px; max-height: 80vh;
-    padding: 24px; transform: translateY(100%);
+    background: var(--bg-card);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 440px;
+    padding: 28px;
+    transform: scale(0.9);
     transition: transform 0.3s;
+    border: 1px solid var(--border-color);
   }
-  .modal-overlay.show .modal { transform: translateY(0); }
-  .modal-handle {
-    width: 40px; height: 4px; background: #333;
-    border-radius: 2px; margin: 0 auto 20px;
+  
+  .modal-overlay.show .modal {
+    transform: scale(1);
   }
-  .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
-  .form-group { margin-bottom: 16px; }
-  .form-label { font-size: 12px; color: #888; margin-bottom: 8px; display: block; }
+  
+  .modal-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .form-group {
+    margin-bottom: 18px;
+  }
+  
+  .form-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    display: block;
+  }
+  
   .form-input {
-    width: 100%; padding: 14px 16px;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 14px; color: #fff;
-    font-size: 15px; outline: none;
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 15px;
+    outline: none;
     transition: border-color 0.2s;
   }
-  .form-input:focus { border-color: #00d4aa; }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .btn-primary {
-    width: 100%; padding: 16px; border-radius: 14px;
-    background: linear-gradient(135deg, #00d4aa, #00a080);
-    border: none; color: #fff; font-size: 15px; font-weight: 600;
-    cursor: pointer; margin-top: 8px;
+  
+  .form-input:focus {
+    border-color: var(--accent-teal);
   }
+  
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  
+  .btn-primary {
+    width: 100%;
+    padding: 16px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent-teal), #00a080);
+    border: none;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: transform 0.2s;
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-1px);
+  }
+  
   .btn-secondary {
-    width: 100%; padding: 14px; border-radius: 14px;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: #888; font-size: 14px; cursor: pointer; margin-top: 8px;
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 10px;
   }
 
+  /* Responsive */
+  @media (max-width: 1200px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .budget-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  
+  @media (max-width: 900px) {
+    .charts-grid { grid-template-columns: 1fr; }
+  }
+  
+  @media (max-width: 768px) {
+    .sidebar {
+      transform: translateX(-100%);
+    }
+    
+    .sidebar.open {
+      transform: translateX(0);
+    }
+    
+    .main-content {
+      margin-left: 0;
+      padding: 16px;
+    }
+    
+    .menu-toggle {
+      display: flex;
+    }
+    
+    .top-bar {
+      flex-wrap: wrap;
+    }
+    
+    .search-box {
+      order: 10;
+      max-width: 100%;
+      flex-basis: 100%;
+    }
+    
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .budget-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .tx-table {
+      display: block;
+      overflow-x: auto;
+    }
+    
+    .filter-bar {
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      padding-bottom: 8px;
+    }
+    
+    .filter-chip, .filter-select {
+      white-space: nowrap;
+    }
+  }
+  
   /* Animations */
   @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: translateY(0); }
   }
-  .animate { animation: fadeInUp 0.4s ease forwards; }
+  
+  .animate {
+    animation: fadeInUp 0.4s ease forwards;
+  }
+  
   .delay-1 { animation-delay: 0.05s; opacity: 0; }
   .delay-2 { animation-delay: 0.1s; opacity: 0; }
   .delay-3 { animation-delay: 0.15s; opacity: 0; }
   .delay-4 { animation-delay: 0.2s; opacity: 0; }
   .delay-5 { animation-delay: 0.25s; opacity: 0; }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 0; }
+  .delay-6 { animation-delay: 0.3s; opacity: 0; }
 </style>
 </head>
 <body>
-<div class="phone-frame">
-  <!-- Status Bar -->
-  <div class="status-bar">
-    <span class="status-time">9:41</span>
-    <div class="status-icons">
-      <svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
-      <svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+<div class="app-container">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">💰</div>
+      <span class="logo-text">MKiT</span>
     </div>
-  </div>
-
-  <!-- Header -->
-  <div class="header">
-    <div class="header-top">
-      <div>
-        <div class="greeting" id="greeting">下午好</div>
-        <div class="user-name">MKiT 👋</div>
+    
+    <nav class="nav-section">
+      <div class="nav-item active" onclick="switchTab('overview')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>總覽</span>
       </div>
-      <div class="month-selector" onclick="openMonthPicker()">
-        <span>📅</span>
-        <span id="currentMonth">2026年5月</span>
-        <span>▼</span>
+      <div class="nav-item" onclick="switchTab('budget')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span>預算</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('analytics')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>分析</span>
+      </div>
+      
+      <div class="nav-divider"></div>
+      
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>設定</span>
+      </div>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <div class="nav-item" onclick="openBudgetModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span>新增預算</span>
       </div>
     </div>
-    <div class="nav-tabs">
-      <button class="nav-tab active" onclick="switchTab('overview')">總覽</button>
-      <button class="nav-tab" onclick="switchTab('budget')">預算</button>
-      <button class="nav-tab" onclick="switchTab('forecast')">預測</button>
-      <button class="nav-tab" onclick="switchTab('compare')">比較</button>
-    </div>
-  </div>
+  </aside>
 
-  <!-- Content -->
-  <div class="content" id="mainContent">
-    <!-- Overview Tab -->
-    <div id="tab-overview">
-      <!-- Summary Cards -->
-      <div class="summary-row animate delay-1">
-        <div class="summary-card income">
-          <div class="card-label">💰 總收入</div>
-          <div class="card-value positive">+HKD 36.87</div>
-          <div class="card-trend up">↑ 100% vs 上月</div>
-          <div class="card-icon">💵</div>
-        </div>
-        <div class="summary-card expense">
-          <div class="card-label">💸 總支出</div>
-          <div class="card-value negative">-HKD 5,630</div>
-          <div class="card-trend down">↑ 23% vs 上月</div>
-          <div class="card-icon">💸</div>
-        </div>
-        <div class="summary-card balance">
-          <div class="card-label">📊 淨現金流</div>
-          <div class="card-value positive">+HKD 29.29</div>
-          <div class="card-trend up">盈餘正常 💪</div>
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="top-left">
+        <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+        <div class="greeting-block">
+          <div class="greeting" id="greeting">下午好</div>
+          <div class="user-name">MKiT 👋</div>
         </div>
       </div>
+      
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchInput" placeholder="搜尋交易記錄..." oninput="handleSearch(this.value)">
+      </div>
+      
+      <div class="top-right">
+        <div class="month-badge" onclick="openMonthPicker()">
+          <span>📅</span>
+          <span id="currentMonth">2026年5月</span>
+          <span>▼</span>
+        </div>
+        <button class="theme-toggle" onclick="toggleTheme()" title="切換深色/淺色模式">
+          <span id="themeIcon">🌙</span>
+        </button>
+      </div>
+    </div>
 
-      <!-- Filter Bar -->
-      <div class="filter-bar animate delay-2">
+    <!-- Stats Cards -->
+    <div class="stats-grid animate delay-1">
+      <div class="stat-card income">
+        <div class="stat-icon">💰</div>
+        <div class="stat-label">💰 總收入</div>
+        <div class="stat-value positive" id="totalIncome">+HKD 36.87</div>
+        <div class="stat-trend up" id="incomeTrend">↑ 100% vs 上月</div>
+      </div>
+      <div class="stat-card expense">
+        <div class="stat-icon">💸</div>
+        <div class="stat-label">💸 總支出</div>
+        <div class="stat-value negative" id="totalExpense">-HKD 5,630</div>
+        <div class="stat-trend down" id="expenseTrend">↑ 23% vs 上月</div>
+      </div>
+      <div class="stat-card balance">
+        <div class="stat-icon">📊</div>
+        <div class="stat-label">📊 淨現金流</div>
+        <div class="stat-value purple" id="netCashflow">HKD -5,593.13</div>
+        <div class="stat-trend" id="cashflowTrend">需注意控制支出</div>
+      </div>
+      <div class="stat-card savings">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-label">🎯 儲蓄率</div>
+        <div class="stat-value green" id="savingsRate">0.7%</div>
+        <div class="stat-trend" id="savingsTrend">偏低，建議提高</div>
+      </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar animate delay-2">
+      <div class="filter-group">
         <select class="filter-select" id="filterYear" onchange="applyFilters()">
           <option value="all">全部年份</option>
           <option value="2026">2026年</option>
@@ -435,7 +955,7 @@
           <option value="2月">2月</option>
           <option value="3月">3月</option>
           <option value="4月">4月</option>
-          <option value="5月">5月</option>
+          <option value="5月" selected>5月</option>
           <option value="6月">6月</option>
           <option value="7月">7月</option>
           <option value="8月">8月</option>
@@ -445,299 +965,80 @@
           <option value="12月">12月</option>
         </select>
       </div>
-      <div class="filter-bar animate delay-2" style="margin-bottom:12px;">
-        <div class="filter-chip active" onclick="filterChannel('all')"><span>全部</span></div>
-        <div class="filter-chip" onclick="filterChannel('cathay')"><span>💳</span> 國泰</div>
-        <div class="filter-chip" onclick="filterChannel('hsbc')"><span>🏦</span> HSBC</div>
-        <div class="filter-chip" onclick="filterChannel('alipay')"><span>💚</span> Alipay</div>
+      <div class="filter-group">
+        <div class="filter-chip active" onclick="filterChannel('all')">全部</div>
+        <div class="filter-chip" onclick="filterChannel('cathay')">💳 國泰</div>
+        <div class="filter-chip" onclick="filterChannel('hsbc')">🏦 HSBC</div>
+        <div class="filter-chip" onclick="filterChannel('alipay')">💚 Alipay</div>
       </div>
-      <div class="filter-bar animate delay-2" style="margin-bottom:16px;">
-        <div class="filter-chip active" onclick="filterCat('all')"><span>全部</span></div>
-        <div class="filter-chip" onclick="filterCat('娛樂')"><span>🎭</span> 娛樂</div>
-        <div class="filter-chip" onclick="filterCat('購物')"><span>🛍️</span> 購物</div>
-        <div class="filter-chip" onclick="filterCat('餐飲')"><span>🍔</span> 餐飲</div>
-        <div class="filter-chip" onclick="filterCat('數位服務')"><span>📱</span> 數位</div>
-        <div class="filter-chip" onclick="filterCat('交通')"><span>🚗</span> 交通</div>
-        <div class="filter-chip" onclick="filterCat('收入')"><span>💰</span> 收入</div>
+      <div class="filter-group">
+        <div class="filter-chip active" onclick="filterCat('all')">全部</div>
+        <div class="filter-chip" onclick="filterCat('娛樂')">🎭 娛樂</div>
+        <div class="filter-chip" onclick="filterCat('購物')">🛍️ 購物</div>
+        <div class="filter-chip" onclick="filterCat('餐飲')">🍔 餐飲</div>
+        <div class="filter-chip" onclick="filterCat('數位服務')">📱 數位</div>
+        <div class="filter-chip" onclick="filterCat('交通')">🚗 交通</div>
+        <div class="filter-chip" onclick="filterCat('收入')">💰 收入</div>
       </div>
+    </div>
 
-      <!-- Spending Chart -->
-      <div class="chart-container animate delay-2">
+    <!-- Charts Grid -->
+    <div class="charts-grid animate delay-3">
+      <div class="chart-card">
         <div class="chart-header">
           <div class="chart-title">📊 支出分佈</div>
-          <div class="chart-period">5月 2026</div>
+          <div class="chart-period" id="donutPeriod">5月 2026</div>
         </div>
-        <div style="display: flex; align-items: center; gap: 16px;">
-          <canvas id="donutChart" class="chart-canvas" style="width:140px;height:140px;"></canvas>
-          <div style="flex: 1;">
-            <div class="legend-item" style="margin-bottom: 8px;">
-              <span style="width:10px;height:10px;background:#ff6b6b;border-radius:50%;display:inline-block;margin-right:8px;"></span>
-              <span style="color:#888;font-size:12px;">娛樂</span>
-              <span style="margin-left:auto;font-size:12px;font-weight:600;">52%</span>
-            </div>
-            <div class="legend-item" style="margin-bottom: 8px;">
-              <span style="width:10px;height:10px;background:#ffd93d;border-radius:50%;display:inline-block;margin-right:8px;"></span>
-              <span style="color:#888;font-size:12px;">購物</span>
-              <span style="margin-left:auto;font-size:12px;font-weight:600;">20%</span>
-            </div>
-            <div class="legend-item" style="margin-bottom: 8px;">
-              <span style="width:10px;height:10px;background:#6bcbff;border-radius:50%;display:inline-block;margin-right:8px;"></span>
-              <span style="color:#888;font-size:12px;">餐飲</span>
-              <span style="margin-left:auto;font-size:12px;font-weight:600;">11%</span>
-            </div>
-            <div class="legend-item" style="margin-bottom: 8px;">
-              <span style="width:10px;height:10px;background:#a855f7;border-radius:50%;display:inline-block;margin-right:8px;"></span>
-              <span style="color:#888;font-size:12px;">數位</span>
-              <span style="margin-left:auto;font-size:12px;font-weight:600;">9%</span>
-            </div>
-            <div class="legend-item" style="margin-bottom: 8px;">
-              <span style="width:10px;height:10px;background:#4ade80;border-radius:50%;display:inline-block;margin-right:8px;"></span>
-              <span style="color:#888;font-size:12px;">交通</span>
-              <span style="margin-left:auto;font-size:12px;font-weight:600;">4%</span>
-            </div>
-          </div>
+        <div class="chart-canvas-wrap">
+          <canvas id="donutChart"></canvas>
         </div>
+        <div class="category-legend" id="categoryLegend"></div>
       </div>
-
-      <!-- Trend Chart -->
-      <div class="chart-container animate delay-3">
+      
+      <div class="chart-card">
         <div class="chart-header">
           <div class="chart-title">📈 每月趨勢</div>
         </div>
-        <canvas id="trendChart" style="width:100%;height:180px;display:block;"></canvas>
-      </div>
-
-      <!-- Transaction List -->
-      <div class="tx-section animate delay-4">
-        <div class="tx-header">
-          <div class="tx-title">📋 交易記錄</div>
-          <div id="txCount" style="font-size:12px;color:#666;"></div>
-        </div>
-        <div class="tx-list" id="txList">
-          <!-- Dynamically generated -->
+        <div class="chart-canvas-wrap">
+          <canvas id="trendChart"></canvas>
         </div>
       </div>
     </div>
 
-    <!-- Budget Tab -->
-    <div id="tab-budget" style="display:none;">
-      <div class="budget-header animate delay-1">
-        <div class="budget-title">💰 預算規劃</div>
-        <button class="budget-add" onclick="openBudgetModal()">+ 新增預算</button>
+    <!-- Budget Section -->
+    <div class="budget-section animate delay-4" id="budgetSection">
+      <div class="section-header">
+        <div class="section-title">💰 預算規劃</div>
+        <button class="btn-add" onclick="openBudgetModal()">+ 新增預算</button>
       </div>
-      
-      <div class="budget-item animate delay-1">
-        <div class="budget-item-header">
-          <div class="budget-category"><span>🎭</span> 娛樂</div>
-          <div class="budget-amounts">HKD 2,948 / HKD 3,000</div>
-        </div>
-        <div class="budget-bar-bg">
-          <div class="budget-bar-fill red" style="width: 98%"></div>
-        </div>
-      </div>
-      
-      <div class="budget-item animate delay-2">
-        <div class="budget-item-header">
-          <div class="budget-category"><span>🛍️</span> 購物</div>
-          <div class="budget-amounts">HKD 1,134 / HKD 2,000</div>
-        </div>
-        <div class="budget-bar-bg">
-          <div class="budget-bar-fill green" style="width: 57%"></div>
-        </div>
-      </div>
-      
-      <div class="budget-item animate delay-3">
-        <div class="budget-item-header">
-          <div class="budget-category"><span>🍔</span> 餐飲</div>
-          <div class="budget-amounts">HKD 640 / HKD 1,500</div>
-        </div>
-        <div class="budget-bar-bg">
-          <div class="budget-bar-fill green" style="width: 43%"></div>
-        </div>
-      </div>
-      
-      <div class="budget-item animate delay-4">
-        <div class="budget-item-header">
-          <div class="budget-category"><span>📱</span> 數位服務</div>
-          <div class="budget-amounts">HKD 522 / HKD 600</div>
-        </div>
-        <div class="budget-bar-bg">
-          <div class="budget-bar-fill yellow" style="width: 87%"></div>
-        </div>
-      </div>
-      
-      <div class="budget-item animate delay-5">
-        <div class="budget-item-header">
-          <div class="budget-category"><span>🚗</span> 交通</div>
-          <div class="budget-amounts">HKD 239 / HKD 500</div>
-        </div>
-        <div class="budget-bar-bg">
-          <div class="budget-bar-fill green" style="width: 48%"></div>
-        </div>
-      </div>
-
-      <div class="chart-container animate delay-5" style="margin-top: 16px;">
-        <div class="chart-header">
-          <div class="chart-title">📊 預算使用概覽</div>
-        </div>
-        <canvas id="budgetChart" style="height:180px;"></canvas>
-      </div>
+      <div class="budget-grid" id="budgetGrid"></div>
     </div>
 
-    <!-- Forecast Tab -->
-    <div id="tab-forecast" style="display:none;">
-      <div class="forecast-header animate delay-1">
-        <div class="forecast-title">🔮 資產預測</div>
-        <div class="forecast-selector">
-          <button class="forecast-chip active" onclick="setForecastPeriod(3)">3個月</button>
-          <button class="forecast-chip" onclick="setForecastPeriod(6)">6個月</button>
-          <button class="forecast-chip" onclick="setForecastPeriod(12)">12個月</button>
-        </div>
+    <!-- Transaction Section -->
+    <div class="tx-section animate delay-5">
+      <div class="tx-header">
+        <div class="section-title">📋 交易記錄</div>
+        <div class="tx-count" id="txCount">23 筆交易</div>
       </div>
-      
-      <div class="forecast-section animate delay-1">
-        <div class="card-label">📈 預計總資產</div>
-        <div class="forecast-value" id="forecastValue">HKD 57,294</div>
-        <div class="forecast-note" id="forecastNote">按目前趨勢，3個月後估計資產</div>
-        <canvas id="forecastChart" style="width:100%;height:180px;display:block;"></canvas>
-      </div>
-      
-      <div class="chart-container animate delay-2">
-        <div class="chart-header">
-          <div class="chart-title">💵 收入 vs 支出 預測</div>
-        </div>
-        <canvas id="forecastBarChart" style="width:100%;height:180px;display:block;"></canvas>
-      </div>
-      
-      <div class="summary-row animate delay-3" style="margin-top: 16px;">
-        <div class="summary-card">
-          <div class="card-label">🎯 建議儲蓄目標</div>
-          <div class="card-value" style="color:#a855f7">HKD 4,000/月</div>
-          <div class="card-trend">按目前支出計算</div>
-        </div>
-        <div class="summary-card">
-          <div class="card-label">⚠️ 需控制項目</div>
-          <div class="card-value" style="color:#ff6b6b;font-size:18px">娛樂 52%</div>
-          <div class="card-trend" style="color:#ff6b6b">超出建議比例</div>
-        </div>
-      </div>
+      <table class="tx-table">
+        <thead>
+          <tr>
+            <th>類別</th>
+            <th>名稱</th>
+            <th>月份</th>
+            <th style="text-align:right">金額</th>
+          </tr>
+        </thead>
+        <tbody id="txList"></tbody>
+      </table>
+      <div class="pagination" id="pagination"></div>
     </div>
-
-    <!-- Compare Tab -->
-    <div id="tab-compare" style="display:none;">
-      <div class="comparison-header animate delay-1">
-        <div class="comparison-title">📊 月度比較</div>
-      </div>
-      
-      <div class="comparison-grid animate delay-1">
-        <div class="comparison-item">
-          <div class="comparison-label">4月支出</div>
-          <div class="comparison-month">HKD 4,580</div>
-          <div class="comparison-change negative">↓ 比上月少 23%</div>
-        </div>
-        <div class="comparison-item">
-          <div class="comparison-label">5月支出</div>
-          <div class="comparison-month">HKD 5,630</div>
-          <div class="comparison-change positive">↑ 比上月多 23%</div>
-        </div>
-        <div class="comparison-item">
-          <div class="comparison-label">娛樂變化</div>
-          <div class="comparison-month">+47%</div>
-          <div class="comparison-change negative">演唱會票價影響</div>
-        </div>
-        <div class="comparison-item">
-          <div class="comparison-label">購物變化</div>
-          <div class="comparison-month">-12%</div>
-          <div class="comparison-change positive">控制得唔錯 👍</div>
-        </div>
-      </div>
-      
-      <div class="chart-container animate delay-2" style="margin-top: 16px;">
-        <div class="chart-header">
-          <div class="chart-title">📊 每月支出比較</div>
-        </div>
-        <canvas id="compareChart" style="height:200px;"></canvas>
-      </div>
-      
-      <div class="chart-container animate delay-3" style="margin-top: 16px;">
-        <div class="chart-header">
-          <div class="chart-title">🏆 類別排名</div>
-        </div>
-        <div style="margin-top: 12px;">
-          <div style="display:flex;align-items:center;margin-bottom:12px;">
-            <span style="width:24px;font-size:16px;">🥇</span>
-            <span style="flex:1;font-size:13px;">娛樂</span>
-            <span style="width:80px;text-align:right;font-size:13px;">HKD 2,948</span>
-            <div style="width:100px;height:8px;background:rgba(255,107,107,0.3);border-radius:4px;margin-left:12px;overflow:hidden;">
-              <div style="width:100%;height:100%;background:#ff6b6b;border-radius:4px;"></div>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;margin-bottom:12px;">
-            <span style="width:24px;font-size:16px;">🥈</span>
-            <span style="flex:1;font-size:13px;">購物</span>
-            <span style="width:80px;text-align:right;font-size:13px;">HKD 1,134</span>
-            <div style="width:100px;height:8px;background:rgba(255,217,61,0.3);border-radius:4px;margin-left:12px;overflow:hidden;">
-              <div style="width:39%;height:100%;background:#ffd93d;border-radius:4px;"></div>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;margin-bottom:12px;">
-            <span style="width:24px;font-size:16px;">🥉</span>
-            <span style="flex:1;font-size:13px;">餐飲</span>
-            <span style="width:80px;text-align:right;font-size:13px;">HKD 640</span>
-            <div style="width:100px;height:8px;background:rgba(107,203,255,0.3);border-radius:4px;margin-left:12px;overflow:hidden;">
-              <div style="width:22%;height:100%;background:#6bcbff;border-radius:4px;"></div>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;margin-bottom:12px;">
-            <span style="width:24px;font-size:16px;">4️⃣</span>
-            <span style="flex:1;font-size:13px;">數位服務</span>
-            <span style="width:80px;text-align:right;font-size:13px;">HKD 522</span>
-            <div style="width:100px;height:8px;background:rgba(168,85,247,0.3);border-radius:4px;margin-left:12px;overflow:hidden;">
-              <div style="width:18%;height:100%;background:#a855f7;border-radius:4px;"></div>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;margin-bottom:12px;">
-            <span style="width:24px;font-size:16px;">5️⃣</span>
-            <span style="flex:1;font-size:13px;">交通</span>
-            <span style="width:80px;text-align:right;font-size:13px;">HKD 239</span>
-            <div style="width:100px;height:8px;background:rgba(74,222,128,0.3);border-radius:4px;margin-left:12px;overflow:hidden;">
-              <div style="width:8%;height:100%;background:#4ade80;border-radius:4px;"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Bottom Navigation -->
-  <div class="bottom-nav">
-    <div class="nav-item active" onclick="switchTab('overview')">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-      <span>總覽</span>
-    </div>
-    <div class="nav-item" onclick="switchTab('budget')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-      <span>預算</span>
-    </div>
-    <div class="nav-item" onclick="switchTab('forecast')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      <span>預測</span>
-    </div>
-    <div class="nav-item" onclick="switchTab('compare')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-      <span>比較</span>
-    </div>
-    <div class="nav-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      <span>設定</span>
-    </div>
-  </div>
+  </main>
 </div>
 
 <!-- Month Picker Modal -->
 <div class="modal-overlay" id="monthModal">
   <div class="modal">
-    <div class="modal-handle"></div>
     <div class="modal-title">📅 選擇月份</div>
     <div class="form-row">
       <div class="form-group">
@@ -770,17 +1071,31 @@
   </div>
 </div>
 
-<script>
-// Chart initialization
-let donutChart, trendChart, budgetChart, forecastChart, forecastBarChart, compareChart;
-let currentChannel = 'all';
-let currentYear = 'all';
-let currentMonth = 'all';
-let currentCat = 'all';
-let currentPage = 1;
-const itemsPerPage = 10;
+<!-- Budget Modal -->
+<div class="modal-overlay" id="budgetModal">
+  <div class="modal">
+    <div class="modal-title">💰 設定預算</div>
+    <div class="form-group">
+      <label class="form-label">類別</label>
+      <select class="form-input" id="budgetCat">
+        <option value="娛樂">🎭 娛樂</option>
+        <option value="購物">🛍️ 購物</option>
+        <option value="餐飲">🍔 餐飲</option>
+        <option value="數位服務">📱 數位服務</option>
+        <option value="交通">🚗 交通</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">每月上限 (HKD)</label>
+      <input type="number" class="form-input" id="budgetLimit" placeholder="例如：3000">
+    </div>
+    <button class="btn-primary" onclick="saveBudget()">儲存</button>
+    <button class="btn-secondary" onclick="closeBudgetModal()">取消</button>
+  </div>
+</div>
 
-// All transactions data
+<script>
+// ============ DATA ============
 const allTransactions = [
   { channel: 'alipay', category: '數位服務', amount: -61.13, month: '6月', year: '2026', name: '上海稀宇科技有限公司' },
   { channel: 'cathay', category: '娛樂', amount: -2398, month: '5月', year: '2026', name: 'CITYLINE 演唱會票' },
@@ -807,96 +1122,186 @@ const allTransactions = [
   { channel: 'cathay', category: '收入', amount: 15000, month: '12月', year: '2025', name: '月薪' }
 ];
 
-// Build transaction list HTML
+// Budget data
+const budgets = {
+  '娛樂': { limit: 3000, spent: 2948 },
+  '購物': { limit: 2000, spent: 1134 },
+  '餐飲': { limit: 1500, spent: 640 },
+  '數位服務': { limit: 600, spent: 522 },
+  '交通': { limit: 500, spent: 239 }
+};
+
+// ============ STATE ============
+let currentChannel = 'all';
+let currentYear = 'all';
+let currentMonth = 'all';
+let currentCat = 'all';
+let currentPage = 1;
+let searchQuery = '';
+const itemsPerPage = 10;
+let donutChart, trendChart;
+let currentTheme = 'dark';
+
+// ============ INIT ============
+document.addEventListener('DOMContentLoaded', () => {
+  updateGreeting();
+  updateTime();
+  setInterval(updateTime, 1000);
+  initCharts();
+  buildTransactionList();
+  updateStats();
+  buildBudgetGrid();
+  buildCategoryLegend();
+});
+
+// Theme
+function toggleTheme() {
+  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  document.getElementById('themeIcon').textContent = currentTheme === 'dark' ? '🌙' : '☀️';
+  
+  // Re-render charts with new colors
+  setTimeout(() => {
+    initCharts();
+    buildTransactionList();
+  }, 100);
+}
+
+// Greeting & Time
+function updateGreeting() {
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? '早晨' : hour < 18 ? '下午好' : '晚上好';
+  document.getElementById('greeting').textContent = greeting;
+}
+
+function updateTime() {
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' });
+  document.querySelector('.status-time')?.remove();
+}
+
+// Sidebar toggle (mobile)
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ============ FILTERS ============
+function filterChannel(ch) {
+  currentChannel = ch;
+  document.querySelectorAll('.filter-group:nth-child(2) .filter-chip').forEach(el => {
+    el.classList.toggle('active', el.textContent.includes(ch === 'all' ? '全部' : ch === 'cathay' ? '國泰' : ch === 'hsbc' ? 'HSBC' : 'Alipay'));
+  });
+  currentPage = 1;
+  buildTransactionList();
+  updateStats();
+  updateCharts();
+}
+
+function filterCat(cat) {
+  currentCat = cat;
+  document.querySelectorAll('.filter-group:nth-child(3) .filter-chip').forEach(el => {
+    const catName = el.textContent.replace(/[🎭🛍️🍔📱🚗💰]/g, '').trim();
+    const catMap = { '娛樂': '娛樂', '購物': '購物', '餐飲': '餐飲', '數位': '數位服務', '交通': '交通', '收入': '收入', '全部': 'all' };
+    el.classList.toggle('active', cat === 'all' ? catName === '全部' : catName === cat || (cat !== 'all' && catName === cat));
+  });
+  currentPage = 1;
+  buildTransactionList();
+  updateStats();
+  updateCharts();
+}
+
+function applyFilters() {
+  currentYear = document.getElementById('filterYear').value;
+  currentMonth = document.getElementById('filterMonth').value;
+  currentPage = 1;
+  buildTransactionList();
+  updateStats();
+  updateCharts();
+}
+
+function handleSearch(query) {
+  searchQuery = query.toLowerCase();
+  currentPage = 1;
+  buildTransactionList();
+}
+
+// ============ GET FILTERED ============
+function getFilteredTransactions() {
+  return allTransactions.filter(t => {
+    if (currentChannel !== 'all' && t.channel !== currentChannel) return false;
+    if (currentYear !== 'all' && t.year !== currentYear) return false;
+    if (currentMonth !== 'all' && t.month !== currentMonth) return false;
+    if (currentCat !== 'all' && t.category !== currentCat) return false;
+    if (searchQuery && !t.name.toLowerCase().includes(searchQuery) && !t.category.toLowerCase().includes(searchQuery)) return false;
+    return true;
+  });
+}
+
+// ============ TRANSACTIONS ============
 function buildTransactionList() {
+  const filtered = getFilteredTransactions();
   const txList = document.getElementById('txList');
   const txCount = document.getElementById('txCount');
-  const filtered = getFilteredTransactions();
   
-  // Update count
   txCount.textContent = filtered.length + ' 筆交易';
   
-  // Group by year-month
-  const grouped = {};
-  filtered.forEach(t => {
-    const key = t.year + '年' + t.month;
-    if (!grouped[key]) grouped[key] = [];
-    grouped[key].push(t);
-  });
-  
-  // Flatten grouped transactions in order
-  const flatTx = [];
-  Object.keys(grouped).sort((a, b) => b.localeCompare(a)).forEach(key => {
-    grouped[key].forEach(t => flatTx.push(t));
-  });
-  
-  // Pagination
-  const totalPages = Math.ceil(flatTx.length / itemsPerPage);
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
   if (currentPage > totalPages) currentPage = totalPages || 1;
   const startIdx = (currentPage - 1) * itemsPerPage;
-  const pageTx = flatTx.slice(startIdx, startIdx + itemsPerPage);
-  
-  // Rebuild grouped for current page
-  const pageGrouped = {};
-  pageTx.forEach(t => {
-    const key = t.year + '年' + t.month;
-    if (!pageGrouped[key]) pageGrouped[key] = [];
-    pageGrouped[key].push(t);
-  });
+  const pageTx = filtered.slice(startIdx, startIdx + itemsPerPage);
   
   let html = '';
-  Object.keys(pageGrouped).forEach(key => {
-    html += `<div class="tx-date-label">${key}</div>`;
-    pageGrouped[key].forEach(t => {
-      const iconBg = t.category === '娛樂' ? 'rgba(255,107,107,0.2)' :
-                     t.category === '購物' ? 'rgba(255,217,61,0.2)' :
-                     t.category === '餐飲' ? 'rgba(107,203,255,0.2)' :
-                     t.category === '數位服務' ? 'rgba(168,85,247,0.2)' :
-                     t.category === '交通' ? 'rgba(74,222,128,0.2)' :
-                     t.category === '收入' ? 'rgba(74,222,128,0.2)' :
-                     'rgba(255,255,255,0.1)';
-      const icon = t.category === '娛樂' ? '🎭' :
-                   t.category === '購物' ? '🛍️' :
-                   t.category === '餐飲' ? '🍔' :
-                   t.category === '數位服務' ? '📱' :
-                   t.category === '交通' ? '🚗' :
-                   t.category === '收入' ? '💰' : '📦';
-      const cardClass = t.channel === 'cathay' ? 'cathay' :
-                       t.channel === 'hsbc' ? 'hsbc' : 'alipay';
-      const cardName = t.channel === 'cathay' ? '國泰萬事達卡' :
-                      t.channel === 'hsbc' ? 'HSBC' : 'AlipayHK';
-      const amountClass = t.amount < 0 ? 'debit' : 'credit';
-      const amountPrefix = t.amount < 0 ? '-' : '+';
-      html += `
-        <div class="tx-item">
-          <div class="tx-icon" style="background:${iconBg}">${icon}</div>
-          <div class="tx-info">
-            <div class="tx-name">${t.name}</div>
-            <div class="tx-meta">
-              <span>${t.category}</span>
-              <span class="tx-card-tag ${cardClass}">${cardName}</span>
-            </div>
+  pageTx.forEach(t => {
+    const iconBg = {
+      '娛樂': 'rgba(255,107,107,0.2)',
+      '購物': 'rgba(255,217,61,0.2)',
+      '餐飲': 'rgba(107,203,255,0.2)',
+      '數位服務': 'rgba(168,85,247,0.2)',
+      '交通': 'rgba(74,222,128,0.2)',
+      '收入': 'rgba(74,222,128,0.2)'
+    }[t.category] || 'rgba(255,255,255,0.1)';
+    
+    const icon = {
+      '娛樂': '🎭', '購物': '🛍️', '餐飲': '🍔',
+      '數位服務': '📱', '交通': '🚗', '收入': '💰'
+    }[t.category] || '📦';
+    
+    const cardClass = t.channel === 'cathay' ? 'cathay' : t.channel === 'hsbc' ? 'hsbc' : 'alipay';
+    const cardName = t.channel === 'cathay' ? '國泰' : t.channel === 'hsbc' ? 'HSBC' : 'Alipay';
+    const amountClass = t.amount < 0 ? 'debit' : 'credit';
+    const amountPrefix = t.amount < 0 ? '-' : '+';
+    
+    html += `
+      <tr>
+        <td><div class="tx-icon-cell" style="background:${iconBg}">${icon}</div></td>
+        <td>
+          <div class="tx-name">${t.name}</div>
+          <div class="tx-meta">
+            <span>${t.category}</span>
+            <span class="tx-card-tag ${cardClass}">${cardName}</span>
           </div>
-          <div class="tx-amount ${amountClass}">${amountPrefix}HKD ${Math.abs(t.amount).toLocaleString()}</div>
-        </div>`;
-    });
+        </td>
+        <td style="color:var(--text-secondary)">${t.year}年${t.month}</td>
+        <td class="tx-amount ${amountClass}">${amountPrefix}HKD ${Math.abs(t.amount).toLocaleString()}</td>
+      </tr>`;
   });
   
-  // Pagination controls
-  if (totalPages > 1) {
-    html += `
-      <div class="pagination">
-        <button class="page-btn" onclick="prevPage()" ${currentPage === 1 ? 'disabled' : ''}>◀</button>
-        <span class="page-info">${currentPage} / ${totalPages}</span>
-        <button class="page-btn" onclick="nextPage()" ${currentPage === totalPages ? 'disabled' : ''}>▶</button>
-      </div>`;
-  }
-  
-  if (flatTx.length === 0) {
-    html += '<div style="text-align:center;color:#666;padding:40px;">暫無交易記錄</div>';
+  if (pageTx.length === 0) {
+    html = '<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-muted)">暫無交易記錄</td></tr>';
   }
   
   txList.innerHTML = html;
+  
+  // Pagination
+  const pagination = document.getElementById('pagination');
+  if (totalPages > 1) {
+    pagination.innerHTML = `
+      <button class="page-btn" onclick="prevPage()" ${currentPage === 1 ? 'disabled' : ''}>◀</button>
+      <span class="page-info">${currentPage} / ${totalPages}</span>
+      <button class="page-btn" onclick="nextPage()" ${currentPage === totalPages ? 'disabled' : ''}>▶</button>`;
+  } else {
+    pagination.innerHTML = '';
+  }
 }
 
 function prevPage() {
@@ -907,385 +1312,209 @@ function prevPage() {
 }
 
 function nextPage() {
-  const filtered = getFilteredTransactions();
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const totalPages = Math.ceil(getFilteredTransactions().length / itemsPerPage);
   if (currentPage < totalPages) {
     currentPage++;
     buildTransactionList();
   }
 }
 
-// Get filtered transactions based on all filter criteria
-function getFilteredTransactions() {
-  return allTransactions.filter(t => {
-    const matchChannel = currentChannel === 'all' || t.channel === currentChannel;
-    const matchYear = currentYear === 'all' || t.year === currentYear;
-    const matchMonth = currentMonth === 'all' || t.month === currentMonth;
-    const matchCat = currentCat === 'all' || t.category === currentCat;
-    return matchChannel && matchYear && matchMonth && matchCat;
-  });
-}
-
-// Apply all filters (called when year/month dropdown changes)
-function applyFilters() {
-  currentYear = document.getElementById('filterYear').value;
-  currentMonth = document.getElementById('filterMonth').value;
-  currentPage = 1;
-  buildTransactionList();
-  updateChartsFromFilter();
-}
-
-// Filter by payment channel
-function filterChannel(channel) {
-  currentChannel = channel;
-  currentPage = 1;
-  // Only clear channel filter bar
-  const channelBar = document.querySelectorAll('.filter-bar')[1];
-  if (channelBar) {
-    channelBar.querySelectorAll('.filter-chip').forEach(el => el.classList.remove('active'));
-  }
-  event.target.closest('.filter-chip').classList.add('active');
-  buildTransactionList();
-  updateChartsFromFilter();
-}
-
-// Filter by category
-function filterCat(cat) {
-  currentCat = cat;
-  currentPage = 1;
-  // Only clear category filter bar (3rd bar)
-  const catBar = document.querySelectorAll('.filter-bar')[2];
-  if (catBar) {
-    catBar.querySelectorAll('.filter-chip').forEach(el => el.classList.remove('active'));
-  }
-  event.target.closest('.filter-chip').classList.add('active');
-  buildTransactionList();
-  updateChartsFromFilter();
-}
-
-// Update charts based on current filter
-function updateChartsFromFilter() {
+// ============ STATS ============
+function updateStats() {
   const filtered = getFilteredTransactions();
+  const income = filtered.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0);
+  const expense = filtered.filter(t => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
+  const net = income - expense;
+  const savingsRate = income > 0 ? ((net / income) * 100).toFixed(1) : 0;
   
-  // Calculate category totals for donut chart
-  const categories = ['娛樂', '購物', '餐飲', '數位服務', '交通', '其他'];
-  const categoryTotals = { '娛樂': 0, '購物': 0, '餐飲': 0, '數位服務': 0, '交通': 0, '其他': 0 };
-  
-  filtered.forEach(t => {
-    if (t.amount < 0 && categories.includes(t.category)) {
-      categoryTotals[t.category] += Math.abs(t.amount);
-    }
-  });
-  
-  const donutData = categories.map(c => Math.round(categoryTotals[c]));
-  
-  // Update donut chart
-  donutChart.data.datasets[0].data = donutData;
-  donutChart.update('none');
-  
-  // Update trend chart - calculate monthly totals
-  const months = ['1月', '2月', '3月', '4月', '5月'];
-  const monthExpenses = [4200, 3800, 5100, 4580, 5630];
-  const monthIncome = [4500, 4000, 4800, 4200, 36];
-  
-  // Filter monthly data based on current filter
-  if (currentChannel !== 'all') {
-    const filterExpenses = { '1月': 0, '2月': 0, '3月': 0, '4月': 0, '5月': 0 };
-    const filterIncome = { '1月': 0, '2月': 0, '3月': 0, '4月': 0, '5月': 0 };
-    
-    allTransactions.forEach(t => {
-      if (t.channel === currentChannel && t.month in filterExpenses) {
-        if (t.amount < 0) filterExpenses[t.month] += Math.abs(t.amount);
-        else filterIncome[t.month] += t.amount;
-      }
-    });
-    
-    // Only update if there's data
-    const hasData = Object.values(filterExpenses).some(v => v > 0) || Object.values(filterIncome).some(v => v > 0);
-    if (hasData) {
-      trendChart.data.datasets[0].data = months.map(m => Math.round(filterExpenses[m] || 0));
-      trendChart.data.datasets[1].data = months.map(m => Math.round(filterIncome[m] || 0));
-    }
-  } else {
-    trendChart.data.datasets[0].data = monthExpenses;
-    trendChart.data.datasets[1].data = monthIncome;
-  }
-  trendChart.update('none');
-  
-  // Update summary cards
-  const totalExpense = filtered.filter(t => t.amount < 0).reduce((sum, t) => sum + Math.abs(t.amount), 0);
-  const totalIncome = filtered.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
-  
-  document.querySelector('.summary-card.expense .card-value').textContent = '-HKD ' + Math.round(totalExpense).toLocaleString();
-  document.querySelector('.summary-card.income .card-value').textContent = '+HKD ' + Math.round(totalIncome).toLocaleString();
-  
-  const netCash = totalIncome - totalExpense;
-  const netCashEl = document.querySelector('.net-cash');
-  if (netCashEl) {
-    netCashEl.textContent = (netCash >= 0 ? '+' : '') + 'HKD ' + Math.round(netCash).toLocaleString();
-    netCashEl.style.color = netCash >= 0 ? '#4ade80' : '#ff6b6b';
-  }
+  document.getElementById('totalIncome').textContent = '+HKD ' + income.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  document.getElementById('totalExpense').textContent = '-HKD ' + expense.toLocaleString();
+  document.getElementById('netCashflow').textContent = (net >= 0 ? '+' : '-') + 'HKD ' + Math.abs(net).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  document.getElementById('netCashflow').className = 'stat-value ' + (net >= 0 ? 'positive' : 'negative');
+  document.getElementById('savingsRate').textContent = savingsRate + '%';
 }
 
-// Initialize all charts
+// ============ CHARTS ============
 function initCharts() {
-  const chartColors = {
-    red: '#ff6b6b',
-    yellow: '#ffd93d',
-    blue: '#6bcbff',
-    purple: '#a855f7',
-    green: '#4ade80',
-    gray: '#888'
-  };
-
-  // Donut Chart - fixed size 140x140
-  const donutCanvas = document.getElementById('donutChart');
-  donutCanvas.style.width = '140px';
-  donutCanvas.style.height = '140px';
-  donutChart = new Chart(donutCanvas, {
+  const isLight = currentTheme === 'light';
+  const gridColor = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
+  const textColor = isLight ? '#666' : '#888';
+  
+  // Donut Chart
+  const ctxDonut = document.getElementById('donutChart').getContext('2d');
+  if (donutChart) donutChart.destroy();
+  
+  const catData = getCategoryData();
+  donutChart = new Chart(ctxDonut, {
     type: 'doughnut',
     data: {
-      labels: ['娛樂', '購物', '餐飲', '數位', '交通', '其他'],
+      labels: catData.labels,
       datasets: [{
-        data: [2948, 1134, 640, 522, 239, 147],
-        backgroundColor: [chartColors.red, chartColors.yellow, chartColors.blue, chartColors.purple, chartColors.green, chartColors.gray],
+        data: catData.values,
+        backgroundColor: ['#ff6b6b', '#ffd93d', '#6bcbff', '#a855f7', '#4ade80', '#ff9f43'],
         borderWidth: 0,
-        cutout: '70%'
+        cutout: '65%'
       }]
     },
     options: {
-      responsive: false,
+      responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } }
+      plugins: {
+        legend: { display: false }
+      }
     }
   });
-
-  // Trend Chart - fixed size 380x180
-  const trendCanvas = document.getElementById('trendChart');
-  trendCanvas.style.width = '100%';
-  trendCanvas.style.height = '180px';
-  const trendCtx = trendCanvas.getContext('2d');
-  trendChart = new Chart(trendCtx, {
+  
+  // Trend Chart
+  const ctxTrend = document.getElementById('trendChart').getContext('2d');
+  if (trendChart) trendChart.destroy();
+  
+  const monthlyData = getMonthlyTrend();
+  trendChart = new Chart(ctxTrend, {
     type: 'line',
     data: {
-      labels: ['1月', '2月', '3月', '4月', '5月'],
+      labels: monthlyData.labels,
       datasets: [{
         label: '支出',
-        data: [4200, 3800, 5100, 4580, 5630],
+        data: monthlyData.expense,
         borderColor: '#ff6b6b',
-        backgroundColor: 'rgba(255,107,107,0.15)',
+        backgroundColor: 'rgba(255,107,107,0.1)',
         fill: true,
         tension: 0.4,
-        pointRadius: 5,
-        pointBackgroundColor: '#ff6b6b',
-        pointBorderColor: '#fff',
-        pointBorderWidth: 1,
-        borderWidth: 2.5
+        pointRadius: 4,
+        pointBackgroundColor: '#ff6b6b'
       }, {
         label: '收入',
-        data: [4500, 4000, 4800, 4200, 36],
-        borderColor: '#4ade80',
-        backgroundColor: 'rgba(74,222,128,0.15)',
+        data: monthlyData.income,
+        borderColor: '#00d4aa',
+        backgroundColor: 'rgba(0,212,170,0.1)',
         fill: true,
         tension: 0.4,
-        pointRadius: 5,
-        pointBackgroundColor: '#4ade80',
-        pointBorderColor: '#fff',
-        pointBorderWidth: 1,
-        borderWidth: 2.5
+        pointRadius: 4,
+        pointBackgroundColor: '#00d4aa'
       }]
     },
     options: {
-      responsive: false,
+      responsive: true,
       maintainAspectRatio: false,
-      interaction: {
-        intersect: false,
-        mode: 'index'
-      },
-      plugins: { 
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: 'rgba(26,26,46,0.95)',
-          titleColor: '#fff',
-          bodyColor: '#888',
-          borderColor: 'rgba(255,255,255,0.1)',
-          borderWidth: 1,
-          padding: 12,
-          callbacks: {
-            label: function(context) {
-              return context.dataset.label + ': HKD ' + context.raw.toLocaleString();
-            }
-          }
-        },
-        zoom: {
-          zoom: {
-            wheel: { enabled: true },
-            pinch: { enabled: true },
-            drag: { enabled: true },
-            mode: 'x',
-            onZoomComplete: function({ chart }) {
-              chart.update('none');
-            }
-          },
-          pan: {
-            enabled: true,
-            mode: 'x'
-          }
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: { color: textColor, usePointStyle: true, padding: 20 }
         }
       },
       scales: {
-        x: {
-          grid: { color: 'rgba(255,255,255,0.03)' },
-          ticks: { color: '#666', font: { size: 11 } },
-          border: { display: false }
-        },
-        y: {
-          grid: { color: 'rgba(255,255,255,0.03)' },
-          ticks: {
-            color: '#666',
-            font: { size: 11 },
-            callback: v => 'HKD ' + v.toLocaleString()
-          },
-          border: { display: false },
-          beginAtZero: false,
-          suggestedMin: 0,
-          suggestedMax: 6000
-        }
-      }
-    }
-  });
-
-  // Budget Chart - fixed size
-  const budgetCanvas = document.getElementById('budgetChart');
-  budgetCanvas.style.width = '100%';
-  budgetCanvas.style.height = '180px';
-  budgetChart = new Chart(budgetCanvas, {
-    type: 'bar',
-    data: {
-      labels: ['娛樂', '購物', '餐飲', '數位', '交通'],
-      datasets: [{
-        label: '已用',
-        data: [2948, 1134, 640, 522, 239],
-        backgroundColor: ['#ff6b6b', '#ffd93d', '#6bcbff', '#a855f7', '#4ade80']
-      }, {
-        label: '剩餘',
-        data: [52, 866, 860, 78, 261],
-        backgroundColor: 'rgba(255,255,255,0.1)'
-      }]
-    },
-    options: {
-      responsive: false,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { stacked: true, grid: { display: false }, ticks: { color: '#888' } },
-        y: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888' } }
-      }
-    }
-  });
-
-  // Forecast Line Chart - fixed size
-  const forecastCanvas = document.getElementById('forecastChart');
-  forecastCanvas.style.width = '100%';
-  forecastCanvas.style.height = '180px';
-  forecastChart = new Chart(forecastCanvas, {
-    type: 'line',
-    data: {
-      labels: ['現在', '1月', '2月', '3月'],
-      datasets: [{
-        data: [54294, 55000, 55800, 57294],
-        borderColor: '#a855f7',
-        backgroundColor: 'rgba(168,85,247,0.2)',
-        fill: true,
-        tension: 0.4,
-        pointRadius: 5,
-        pointBackgroundColor: '#a855f7'
-      }]
-    },
-    options: {
-      responsive: false,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888' } },
-        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', callback: v => 'HKD ' + v.toLocaleString() } }
-      }
-    }
-  });
-
-  // Forecast Bar Chart - fixed size
-  const forecastBarCanvas = document.getElementById('forecastBarChart');
-  forecastBarCanvas.style.width = '100%';
-  forecastBarCanvas.style.height = '180px';
-  forecastBarChart = new Chart(forecastBarCanvas, {
-    type: 'bar',
-    data: {
-      labels: ['6月', '7月', '8月'],
-      datasets: [{
-        label: '預計收入',
-        data: [0, 500, 500],
-        backgroundColor: '#4ade80'
-      }, {
-        label: '預計支出',
-        data: [5600, 5500, 5200],
-        backgroundColor: '#ff6b6b'
-      }]
-    },
-    options: {
-      responsive: false,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: true, labels: { color: '#888' } } },
-      scales: {
-        x: { grid: { display: false }, ticks: { color: '#888' } },
-        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888' } }
-      }
-    }
-  });
-
-  // Compare Chart - fixed size
-  const compareCanvas = document.getElementById('compareChart');
-  compareCanvas.style.width = '100%';
-  compareCanvas.style.height = '180px';
-  compareChart = new Chart(compareCanvas, {
-    type: 'bar',
-    data: {
-      labels: ['1月', '2月', '3月', '4月', '5月'],
-      datasets: [{
-        label: '月支出',
-        data: [4200, 3800, 5100, 4580, 5630],
-        backgroundColor: 'rgba(255,107,107,0.6)',
-        borderRadius: 8
-      }]
-    },
-    options: {
-      responsive: false,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { display: false }, ticks: { color: '#888' } },
-        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', callback: v => 'HKD ' + v.toLocaleString() } }
+        x: { grid: { color: gridColor }, ticks: { color: textColor } },
+        y: { grid: { color: gridColor }, ticks: { color: textColor } }
       }
     }
   });
 }
 
-// Tab switching
-function switchTab(tabId) {
-  const tabs = ['overview', 'budget', 'forecast', 'compare'];
-  tabs.forEach(t => {
-    document.getElementById('tab-' + t).style.display = t === tabId ? 'block' : 'none';
-  });
-  
-  document.querySelectorAll('.nav-tab').forEach((el, i) => {
-    el.classList.toggle('active', tabs[i] === tabId);
-  });
-  
-  document.querySelectorAll('.nav-item').forEach((el, i) => {
-    el.classList.toggle('active', tabs[i] === tabId);
-  });
+function updateCharts() {
+  initCharts();
+  buildCategoryLegend();
 }
 
-// Month picker
+function getCategoryData() {
+  const filtered = getFilteredTransactions().filter(t => t.amount < 0);
+  const cats = {};
+  filtered.forEach(t => {
+    cats[t.category] = (cats[t.category] || 0) + Math.abs(t.amount);
+  });
+  const labels = Object.keys(cats);
+  const values = Object.values(cats);
+  return { labels, values };
+}
+
+function getMonthlyTrend() {
+  const months = ['1月', '2月', '3月', '4月', '5月', '6月'];
+  const year = currentYear === 'all' ? '2026' : currentYear;
+  
+  const expense = months.map(m => {
+    const total = allTransactions
+      .filter(t => t.month === m && t.year === year && t.amount < 0)
+      .reduce((s, t) => s + Math.abs(t.amount), 0);
+    return total;
+  });
+  
+  const income = months.map(m => {
+    const total = allTransactions
+      .filter(t => t.month === m && t.year === year && t.amount > 0)
+      .reduce((s, t) => s + t.amount, 0);
+    return total;
+  });
+  
+  return { labels: months.map(m => year + '年' + m), expense, income };
+}
+
+function buildCategoryLegend() {
+  const catData = getCategoryData();
+  const total = catData.values.reduce((s, v) => s + v, 0) || 1;
+  const colors = ['#ff6b6b', '#ffd93d', '#6bcbff', '#a855f7', '#4ade80', '#ff9f43'];
+  const icons = ['🎭', '🛍️', '🍔', '📱', '🚗', '💰'];
+  
+  const legend = document.getElementById('categoryLegend');
+  let html = '';
+  catData.labels.forEach((label, i) => {
+    const pct = ((catData.values[i] / total) * 100).toFixed(0);
+    html += `
+      <div class="legend-item">
+        <span class="legend-dot" style="background:${colors[i % colors.length]}"></span>
+        <span class="legend-label">${icons[i % icons.length]} ${label}</span>
+        <span class="legend-value">${pct}%</span>
+      </div>`;
+  });
+  legend.innerHTML = html;
+}
+
+// ============ BUDGET ============
+function buildBudgetGrid() {
+  const grid = document.getElementById('budgetGrid');
+  const icons = { '娛樂': '🎭', '購物': '🛍️', '餐飲': '🍔', '數位服務': '📱', '交通': '🚗' };
+  const colors = { '娛樂': 'red', '購物': 'yellow', '餐飲': 'green', '數位服務': 'yellow', '交通': 'green' };
+  
+  let html = '';
+  Object.entries(budgets).forEach(([cat, data]) => {
+    const pct = Math.min((data.spent / data.limit) * 100, 100);
+    const colorClass = pct >= 90 ? 'red' : pct >= 70 ? 'yellow' : 'green';
+    const isOver = data.spent > data.limit;
+    
+    html += `
+      <div class="budget-item">
+        <div class="budget-item-header">
+          <div class="budget-cat"><span>${icons[cat] || '📦'}</span> ${cat}</div>
+          <div class="budget-amounts">HKD ${data.spent.toLocaleString()} / ${data.limit.toLocaleString()}</div>
+        </div>
+        <div class="budget-bar-bg">
+          <div class="budget-bar-fill ${colorClass}" style="width:${pct}%"></div>
+        </div>
+        ${isOver ? '<div class="budget-alert">⚠️ 已超支！</div>' : ''}
+      </div>`;
+  });
+  
+  grid.innerHTML = html;
+}
+
+function openBudgetModal() {
+  document.getElementById('budgetModal').classList.add('show');
+}
+
+function closeBudgetModal() {
+  document.getElementById('budgetModal').classList.remove('show');
+}
+
+function saveBudget() {
+  const cat = document.getElementById('budgetCat').value;
+  const limit = parseFloat(document.getElementById('budgetLimit').value);
+  if (cat && limit) {
+    budgets[cat] = { limit, spent: budgets[cat]?.spent || 0 };
+    buildBudgetGrid();
+    closeBudgetModal();
+  }
+}
+
+// ============ MONTH PICKER ============
 function openMonthPicker() {
   document.getElementById('monthModal').classList.add('show');
 }
@@ -1298,66 +1527,34 @@ function applyMonthPicker() {
   const year = document.getElementById('pickerYear').value;
   const month = document.getElementById('pickerMonth').value;
   document.getElementById('currentMonth').textContent = year + '年' + month;
-  closeMonthPicker();
-  
-  // Also update the filter dropdowns
   document.getElementById('filterYear').value = year;
   document.getElementById('filterMonth').value = month;
-  currentYear = year;
-  currentMonth = month;
-  currentPage = 1;
-  buildTransactionList();
-  updateChartsFromFilter();
+  applyFilters();
+  closeMonthPicker();
 }
 
-// Budget modal (placeholder - reuses month modal styling)
-function openBudgetModal() {
-  document.getElementById('monthModal').classList.add('show');
-}
-
-function closeBudgetModal() {
-  document.getElementById('monthModal').classList.remove('show');
-}
-
-function saveBudget() {
-  closeBudgetModal();
-}
-
-// Forecast period
-function setForecastPeriod(months) {
-  document.querySelectorAll('.forecast-chip').forEach(el => el.classList.remove('active'));
-  event.target.classList.add('active');
+// Tab switching
+function switchTab(tab) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  event?.target?.closest('.nav-item')?.classList.add('active');
   
-  const values = {
-    3: { value: 'HKD 57,294', note: '按目前趨勢，3個月後估計資產' },
-    6: { value: 'HKD 62,294', note: '按目前趨勢，6個月後估計資產' },
-    12: { value: 'HKD 77,294', note: '按目前趨勢，12個月後估計資產' }
-  };
+  // Hide all sections, show selected
+  document.querySelectorAll('.stats-grid, .filter-bar, .charts-grid, .budget-section, .tx-section').forEach(el => {
+    el.style.display = 'none';
+  });
   
-  document.getElementById('forecastValue').textContent = values[months].value;
-  document.getElementById('forecastNote').textContent = values[months].note;
-}
-
-// Initialize on load
-document.addEventListener('DOMContentLoaded', () => {
-  initCharts();
-  buildTransactionList();
-  updateTime();
-  setInterval(updateTime, 1000);
-});
-
-function updateTime() {
-  const now = new Date();
-  const hours = now.getHours().toString().padStart(2, '0');
-  const minutes = now.getMinutes().toString().padStart(2, '0');
-  document.querySelector('.status-time').textContent = hours + ':' + minutes;
-  
-  const greeting = document.getElementById('greeting');
-  if (greeting) {
-    if (hours < 12) greeting.textContent = '早晨';
-    else if (hours < 18) greeting.textContent = '下午好';
-    else greeting.textContent = '晚上好';
+  if (tab === 'overview') {
+    document.querySelectorAll('.stats-grid, .filter-bar, .charts-grid, .budget-section, .tx-section').forEach(el => {
+      el.style.display = '';
+    });
+  } else if (tab === 'budget') {
+    document.querySelectorAll('.stats-grid, .filter-bar, .budget-section').forEach(el => {
+      el.style.display = '';
+    });
+    document.getElementById('budgetSection').style.display = '';
   }
+  
+  toggleSidebar();
 }
 </script>
 </body>
