@@ -805,6 +805,10 @@
   }
   
   @media (max-width: 768px) {
+    html {
+      font-size: 15px;
+    }
+    
     .sidebar {
       transform: translateX(-100%);
       width: 260px;
@@ -816,29 +820,37 @@
     
     .main-content {
       margin-left: 0;
-      padding: 12px;
+      padding: 12px 10px;
     }
     
     .menu-toggle {
       display: flex;
-      width: 44px;
-      height: 44px;
+      width: 40px;
+      height: 40px;
     }
     
     .top-bar {
       flex-direction: column;
       align-items: stretch;
-      gap: 12px;
+      gap: 10px;
     }
     
     .top-left {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
     
     .greeting-block {
       flex: 1;
+    }
+    
+    .greeting-text {
+      font-size: 12px;
+    }
+    
+    .greeting-name {
+      font-size: 18px;
     }
     
     .search-box {
@@ -847,35 +859,56 @@
       order: 5;
     }
     
+    .search-box input {
+      font-size: 14px;
+      padding: 10px 12px 10px 36px;
+    }
+    
     .top-right {
       display: flex;
       justify-content: space-between;
-      gap: 12px;
+      gap: 10px;
     }
     
     .month-badge {
       flex: 1;
       justify-content: center;
+      font-size: 12px;
+      padding: 8px 10px;
     }
     
     .theme-toggle {
-      width: 44px;
-      height: 44px;
+      width: 40px;
+      height: 40px;
       flex-shrink: 0;
     }
     
     .stats-grid {
       grid-template-columns: 1fr;
-      gap: 12px;
+      gap: 10px;
     }
     
     .filter-bar {
       flex-wrap: wrap;
       margin-bottom: 16px;
+      gap: 8px;
     }
     
     .filter-bar::after {
       display: none;
+    }
+    
+    .filter-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    
+    .filter-chip, .filter-select {
+      white-space: nowrap;
+      font-size: 11px;
+      padding: 6px 10px;
+      border-radius: 8px;
     }
     
     .budget-grid {
@@ -885,39 +918,34 @@
     .tx-table {
       display: block;
       overflow-x: auto;
-      font-size: 12px;
+      font-size: 11px;
     }
     
     .tx-table th, .tx-table td {
-      padding: 10px 8px;
+      padding: 8px 6px;
       white-space: nowrap;
-    }
-    
-    .filter-chip, .filter-select {
-      white-space: nowrap;
-      padding: 8px 12px;
-      font-size: 12px;
     }
     
     /* Analytics / Investment page responsive */
     .chart-card[style*="padding:32px"] {
-      padding: 16px !important;
+      padding: 12px !important;
     }
     
     .chart-card[style*="padding:32px"] > div:last-child {
       flex-direction: column !important;
       align-items: center !important;
-      gap: 20px !important;
+      gap: 16px !important;
     }
     
     .chart-card[style*="padding:32px"] .chart-canvas-wrap {
-      width: 200px !important;
-      height: 200px !important;
+      width: 180px !important;
+      height: 180px !important;
     }
     
     .chart-card[style*="padding:32px"] .category-legend {
       grid-template-columns: 1fr 1fr !important;
       width: 100% !important;
+      font-size: 11px;
     }
     
     .charts-grid {
@@ -926,7 +954,7 @@
     
     /* Stat cards on mobile */
     .stat-card {
-      padding: 14px;
+      padding: 12px;
     }
     
     .stat-label {
@@ -934,23 +962,27 @@
     }
     
     .stat-value {
-      font-size: 16px;
+      font-size: 15px;
     }
     
     .stat-icon {
-      font-size: 24px;
+      font-size: 20px;
+    }
+    
+    .stat-trend {
+      font-size: 10px;
     }
     
     /* Modal on mobile */
     .modal {
       max-width: 95%;
-      margin: 12px;
-      padding: 20px;
+      margin: 10px;
+      padding: 16px;
     }
     
     /* Charts on mobile */
     .chart-canvas-wrap {
-      height: 180px;
+      height: 160px;
     }
   }
   
