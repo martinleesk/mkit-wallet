@@ -2097,10 +2097,10 @@ function applyMonthPicker() {
   updateStats();
   updateCharts();
   
-  // 延遲關閉modal確保資料更新完成
+  // 等待CSS transition完成後關閉modal
   setTimeout(() => {
     closeMonthPicker();
-  }, 150);
+  }, 350);
 }
 
 // Tab switching
