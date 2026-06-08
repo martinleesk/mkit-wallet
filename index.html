@@ -1120,27 +1120,30 @@
         <button class="btn-add" onclick="openInvestmentModal()">+ 新增投資</button>
       </div>
 
+      <!-- Big Allocation Pie Chart -->
+      <div class="chart-card" style="margin-bottom:24px;padding:32px">
+        <div class="chart-header">
+          <div class="chart-title">🥧 資產分佈</div>
+          <div id="invTotalValueLabel" style="font-size:14px;color:var(--text-secondary)"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:40px">
+          <div class="chart-canvas-wrap" style="width:280px;height:280px;flex-shrink:0">
+            <canvas id="investmentAllocationChart"></canvas>
+          </div>
+          <div class="category-legend" id="investmentAllocationLegend" style="flex:1;grid-template-columns:repeat(2,1fr)"></div>
+        </div>
+      </div>
+
       <!-- Investment Stats -->
       <div class="stats-grid" style="margin-bottom:24px" id="investmentStats"></div>
 
-      <!-- Charts Grid -->
-      <div class="charts-grid" style="margin-bottom:24px">
-        <div class="chart-card">
-          <div class="chart-header">
-            <div class="chart-title">🥧 資產分佈</div>
-          </div>
-          <div class="chart-canvas-wrap">
-            <canvas id="investmentAllocationChart"></canvas>
-          </div>
-          <div class="category-legend" id="investmentAllocationLegend" style="margin-top:16px"></div>
+      <!-- Monthly Chart -->
+      <div class="chart-card" style="margin-bottom:24px">
+        <div class="chart-header">
+          <div class="chart-title">📊 每月投資金額</div>
         </div>
-        <div class="chart-card">
-          <div class="chart-header">
-            <div class="chart-title">📊 每月投資金額</div>
-          </div>
-          <div class="chart-canvas-wrap">
-            <canvas id="investmentMonthlyChart"></canvas>
-          </div>
+        <div class="chart-canvas-wrap">
+          <canvas id="investmentMonthlyChart"></canvas>
         </div>
       </div>
 
@@ -1877,6 +1880,9 @@ function renderInvestment() {
   const returnPct = totalInvested > 0 ? (totalReturn / totalInvested * 100) : 0;
   const bestInv = investments.reduce((best, i) => i.returnPct > best.returnPct ? i : best, investments[0]);
   const worstInv = investments.reduce((worst, i) => i.returnPct < worst.returnPct ? i : worst, investments[0]);
+  
+  // Update total value label
+  document.getElementById('invTotalValueLabel').textContent = `總值: HKD ${totalValue.toLocaleString()}`;
   
   document.getElementById('investmentStats').innerHTML = `
     <div class="stat-card" style="border-left:4px solid var(--accent-teal)">
