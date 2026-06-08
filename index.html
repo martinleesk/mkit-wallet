@@ -1686,9 +1686,13 @@ function filterChannel(ch) {
 
 function filterCat(cat) {
   currentCat = cat;
+  const catTextMap = {
+    'all': '全部', '娛樂': '娛樂', '購物': '購物', '餐飲': '餐飲',
+    '數位服務': '數位', '交通': '交通', '收入': '收入'
+  };
+  const targetText = catTextMap[cat] || cat;
   document.querySelectorAll('.filter-group:nth-child(3) .filter-chip').forEach(el => {
-    const catName = el.textContent.trim();
-    el.classList.toggle('active', cat === 'all' ? catName === '全部' : catName === cat);
+    el.classList.toggle('active', el.textContent.includes(targetText));
   });
   currentPage = 1;
   buildTransactionList();
