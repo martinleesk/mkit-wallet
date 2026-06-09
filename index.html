@@ -293,6 +293,101 @@
     transform: translateY(-2px);
     box-shadow: var(--shadow);
   }
+
+  .stat-card:hover .stat-icon {
+    opacity: 0.2;
+  }
+  
+  /* Tooltip */
+  .tooltip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .tooltip .tooltip-text {
+    visibility: hidden;
+    opacity: 0;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-size: 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow);
+    position: absolute;
+    bottom: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    z-index: 1000;
+    transition: opacity 0.2s, visibility 0.2s;
+    pointer-events: none;
+  }
+  
+  .tooltip .tooltip-text::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: var(--border-color);
+  }
+  
+  .tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+  }
+  
+  .tooltip-info {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    background: var(--text-muted);
+    color: var(--bg-primary);
+    border-radius: 50%;
+    font-size: 10px;
+    font-weight: 700;
+    cursor: help;
+  }
+  
+  /* Transaction row hover */
+  .tx-table tbody tr {
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+  
+  .tx-table tbody tr:hover {
+    background: var(--bg-card-hover);
+  }
+  
+  .tx-table tbody tr:hover td {
+    color: var(--text-primary);
+  }
+  
+  /* Category legend hover */
+  .cat-item {
+    transition: transform 0.15s;
+    cursor: pointer;
+  }
+  
+  .cat-item:hover {
+    transform: translateX(4px);
+  }
+  
+  /* Chart card hover */
+  .chart-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .chart-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow);
+  }
   
   .stat-card.income { border-left: 4px solid var(--accent-teal); }
   .stat-card.expense { border-left: 4px solid var(--accent-red); }
@@ -1286,34 +1381,32 @@
     </div>
 
     <!-- Stats Cards -->
-    <div class="stats-grid animate delay-1">
-      <div class="stat-card income">
-        <div class="stat-icon">💰</div>
-        <div class="stat-label">💰 總收入</div>
-        <div class="stat-value positive" id="totalIncome">+HKD 36.87</div>
-        <div class="stat-trend up" id="incomeTrend">↑ 100% vs 上月</div>
-      </div>
-      <div class="stat-card expense">
-        <div class="stat-icon">💸</div>
-        <div class="stat-label">💸 總支出</div>
-        <div class="stat-value negative" id="totalExpense">-HKD 5,630</div>
-        <div class="stat-trend down" id="expenseTrend">↑ 23% vs 上月</div>
-      </div>
-      <div class="stat-card balance">
-        <div class="stat-icon">📊</div>
-        <div class="stat-label">📊 淨現金流</div>
-        <div class="stat-value purple" id="netCashflow">HKD -5,593.13</div>
-        <div class="stat-trend" id="cashflowTrend">需注意控制支出</div>
-      </div>
-      <div class="stat-card savings">
-        <div class="stat-icon">🎯</div>
-        <div class="stat-label">🎯 儲蓄率</div>
-        <div class="stat-value green" id="savingsRate">0.7%</div>
-        <div class="stat-trend" id="savingsTrend">偏低，建議提高</div>
-      </div>
-    </div>
-
-        <!-- Stats Cards -->
+        <div class="stats-grid animate delay-1">
+          <div class="stat-card income">
+            <div class="stat-icon">💰</div>
+            <div class="stat-label">💰 總收入 <span class="tooltip"><span class="tooltip-info">i</span><span class="tooltip-text">該月份所有已確認收入總和</span></span></div>
+            <div class="stat-value positive" id="totalIncome">+HKD 36.87</div>
+            <div class="stat-trend up" id="incomeTrend">↑ 100% vs 上月</div>
+          </div>
+          <div class="stat-card expense">
+            <div class="stat-icon">💸</div>
+            <div class="stat-label">💸 總支出 <span class="tooltip"><span class="tooltip-info">i</span><span class="tooltip-text">該月份所有已確認支出總和</span></span></div>
+            <div class="stat-value negative" id="totalExpense">-HKD 5,630</div>
+            <div class="stat-trend down" id="expenseTrend">↑ 23% vs 上月</div>
+          </div>
+          <div class="stat-card balance">
+            <div class="stat-icon">📊</div>
+            <div class="stat-label">📊 淨現金流 <span class="tooltip"><span class="tooltip-info">i</span><span class="tooltip-text">收入 - 支出，正數表示儲蓄</span></span></div>
+            <div class="stat-value purple" id="netCashflow">HKD -5,593.13</div>
+            <div class="stat-trend" id="cashflowTrend">需注意控制支出</div>
+          </div>
+          <div class="stat-card savings">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-label">🎯 儲蓄率 <span class="tooltip"><span class="tooltip-info">i</span><span class="tooltip-text">淨現金流 ÷ 總收入，建議維持喺20%以上</span></span></div>
+            <div class="stat-value green" id="savingsRate">0%</div>
+            <div class="stat-trend" id="savingsTrend">偏低，建議提高</div>
+          </div>
+        </div>
     <div class="charts-grid animate delay-3">
       <div class="chart-card">
         <div class="chart-header">
@@ -1750,6 +1843,30 @@ let searchQuery = '';
 const itemsPerPage = 10;
 let donutChart, trendChart, budgetChart;
 let currentTheme = 'dark';
+
+// ============ CHART DEFAULTS ============
+Chart.defaults.color = '#888';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+Chart.defaults.font.family = "'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif";
+Chart.defaults.plugins.tooltip.backgroundColor = '#1a1a2e';
+Chart.defaults.plugins.tooltip.titleColor = '#fff';
+Chart.defaults.plugins.tooltip.bodyColor = '#ccc';
+Chart.defaults.plugins.tooltip.borderColor = 'rgba(255,255,255,0.1)';
+Chart.defaults.plugins.tooltip.borderWidth = 1;
+Chart.defaults.plugins.tooltip.padding = 12;
+Chart.defaults.plugins.tooltip.cornerRadius = 8;
+Chart.defaults.plugins.tooltip.displayColors = true;
+Chart.defaults.plugins.tooltip.boxPadding = 4;
+Chart.defaults.plugins.tooltip.callbacks.label = function(context) {
+  let label = context.dataset.label || '';
+  if (label) label += ': ';
+  if (context.parsed.y !== null) {
+    label += 'HKD ' + context.parsed.y.toLocaleString();
+  } else if (context.parsed !== null) {
+    label += 'HKD ' + context.parsed.toLocaleString();
+  }
+  return label;
+};
 
 // ============ INIT ============
 document.addEventListener('DOMContentLoaded', () => {
