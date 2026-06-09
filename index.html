@@ -1507,7 +1507,7 @@
 <!-- Month Picker Modal -->
 <div class="modal-overlay" id="monthModal">
   <div class="modal">
-    <div class="modal-title">📅 選擇月份</div>
+    <div class="modal-title">📅 選擇日期</div>
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">年份</label>
@@ -1532,6 +1532,43 @@
           <option value="10月">10月</option>
           <option value="11月">11月</option>
           <option value="12月">12月</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">日子</label>
+        <select class="form-input" id="pickerDay">
+          <option value="all">全部</option>
+          <option value="1日">1日</option>
+          <option value="2日">2日</option>
+          <option value="3日">3日</option>
+          <option value="4日">4日</option>
+          <option value="5日">5日</option>
+          <option value="6日">6日</option>
+          <option value="7日">7日</option>
+          <option value="8日">8日</option>
+          <option value="9日">9日</option>
+          <option value="10日">10日</option>
+          <option value="11日">11日</option>
+          <option value="12日">12日</option>
+          <option value="13日">13日</option>
+          <option value="14日">14日</option>
+          <option value="15日">15日</option>
+          <option value="16日">16日</option>
+          <option value="17日">17日</option>
+          <option value="18日">18日</option>
+          <option value="19日">19日</option>
+          <option value="20日">20日</option>
+          <option value="21日">21日</option>
+          <option value="22日">22日</option>
+          <option value="23日">23日</option>
+          <option value="24日">24日</option>
+          <option value="25日">25日</option>
+          <option value="26日">26日</option>
+          <option value="27日">27日</option>
+          <option value="28日">28日</option>
+          <option value="29日">29日</option>
+          <option value="30日">30日</option>
+          <option value="31日">31日</option>
         </select>
       </div>
     </div>
@@ -1621,29 +1658,29 @@
 <script>
 // ============ DATA ============
 const allTransactions = [
-  { channel: 'alipay', category: '數位服務', amount: -61.13, month: '6月', year: '2026', name: '上海稀宇科技有限公司' },
-  { channel: 'cathay', category: '娛樂', amount: -2398, month: '5月', year: '2026', name: 'CITYLINE 演唱會票' },
-  { channel: 'alipay', category: '購物', amount: -357.50, month: '5月', year: '2026', name: '正佳旗艦店' },
-  { channel: 'alipay', category: '娛樂', amount: -350.49, month: '5月', year: '2026', name: '馬克清吧（廣州天河）' },
-  { channel: 'alipay', category: '購物', amount: -487.21, month: '5月', year: '2026', name: '淘寶交易' },
-  { channel: 'cathay', category: '收入', amount: 36.87, month: '5月', year: '2026', name: 'Google One 退款' },
-  { channel: 'cathay', category: '餐飲', amount: -261.11, month: '5月', year: '2026', name: '麥當勞' },
-  { channel: 'hsbc', category: '購物', amount: -289, month: '5月', year: '2026', name: 'MUJI 無印良品' },
-  { channel: 'cathay', category: '娛樂', amount: -890, month: '4月', year: '2026', name: '電影節門票' },
-  { channel: 'hsbc', category: '餐飲', amount: -420, month: '4月', year: '2026', name: '日本料理' },
-  { channel: 'alipay', category: '購物', amount: -156, month: '4月', year: '2026', name: '超市購物' },
-  { channel: 'cathay', category: '交通', amount: -320, month: '3月', year: '2026', name: '打的士' },
-  { channel: 'alipay', category: '餐飲', amount: -280, month: '3月', year: '2026', name: '茶餐廳' },
-  { channel: 'hsbc', category: '數位服務', amount: -89, month: '3月', year: '2026', name: 'Netflix 訂閱' },
-  { channel: 'cathay', category: '購物', amount: -1200, month: '2月', year: '2026', name: '春季大減價' },
-  { channel: 'alipay', category: '娛樂', amount: -450, month: '2月', year: '2026', name: '酒吧聚會' },
-  { channel: 'hsbc', category: '餐飲', amount: -380, month: '1月', year: '2026', name: '生日聚餐' },
-  { channel: 'cathay', category: '收入', amount: 15000, month: '1月', year: '2026', name: '月薪' },
-  { channel: 'alipay', category: '購物', amount: -2100, month: '1月', year: '2026', name: '淘寶年貨' },
-  { channel: 'hsbc', category: '交通', amount: -520, month: '12月', year: '2025', name: '聖誕節交通費' },
-  { channel: 'cathay', category: '娛樂', amount: -1800, month: '12月', year: '2025', name: '聖誕派對' },
-  { channel: 'alipay', category: '購物', amount: -3500, month: '12月', year: '2025', name: '聖誕禮物' },
-  { channel: 'cathay', category: '收入', amount: 15000, month: '12月', year: '2025', name: '月薪' }
+  { channel: 'alipay', category: '數位服務', amount: -61.13, month: '6月', year: '2026', day: '3日', name: '上海稀宇科技有限公司' },
+  { channel: 'cathay', category: '娛樂', amount: -2398, month: '5月', year: '2026', day: '15日', name: 'CITYLINE 演唱會票' },
+  { channel: 'alipay', category: '購物', amount: -357.50, month: '5月', year: '2026', day: '8日', name: '正佳旗艦店' },
+  { channel: 'alipay', category: '娛樂', amount: -350.49, month: '5月', year: '2026', day: '22日', name: '馬克清吧（廣州天河）' },
+  { channel: 'alipay', category: '購物', amount: -487.21, month: '5月', year: '2026', day: '12日', name: '淘寶交易' },
+  { channel: 'cathay', category: '收入', amount: 36.87, month: '5月', year: '2026', day: '18日', name: 'Google One 退款' },
+  { channel: 'cathay', category: '餐飲', amount: -261.11, month: '5月', year: '2026', day: '5日', name: '麥當勞' },
+  { channel: 'hsbc', category: '購物', amount: -289, month: '5月', year: '2026', day: '20日', name: 'MUJI 無印良品' },
+  { channel: 'cathay', category: '娛樂', amount: -890, month: '4月', year: '2026', day: '10日', name: '電影節門票' },
+  { channel: 'hsbc', category: '餐飲', amount: -420, month: '4月', year: '2026', day: '18日', name: '日本料理' },
+  { channel: 'alipay', category: '購物', amount: -156, month: '4月', year: '2026', day: '25日', name: '超市購物' },
+  { channel: 'cathay', category: '交通', amount: -320, month: '3月', year: '2026', day: '7日', name: '打的士' },
+  { channel: 'alipay', category: '餐飲', amount: -280, month: '3月', year: '2026', day: '14日', name: '茶餐廳' },
+  { channel: 'hsbc', category: '數位服務', amount: -89, month: '3月', year: '2026', day: '1日', name: 'Netflix 訂閱' },
+  { channel: 'cathay', category: '購物', amount: -1200, month: '2月', year: '2026', day: '28日', name: '春季大減價' },
+  { channel: 'alipay', category: '娛樂', amount: -450, month: '2月', year: '2026', day: '14日', name: '酒吧聚會' },
+  { channel: 'hsbc', category: '餐飲', amount: -380, month: '1月', year: '2026', day: '20日', name: '生日聚餐' },
+  { channel: 'cathay', category: '收入', amount: 15000, month: '1月', year: '2026', day: '5日', name: '月薪' },
+  { channel: 'alipay', category: '購物', amount: -2100, month: '1月', year: '2026', day: '15日', name: '淘寶年貨' },
+  { channel: 'hsbc', category: '交通', amount: -520, month: '12月', year: '2025', day: '24日', name: '聖誕節交通費' },
+  { channel: 'cathay', category: '娛樂', amount: -1800, month: '12月', year: '2025', day: '25日', name: '聖誕派對' },
+  { channel: 'alipay', category: '購物', amount: -3500, month: '12月', year: '2025', day: '20日', name: '聖誕禮物' },
+  { channel: 'cathay', category: '收入', amount: 15000, month: '12月', year: '2025', day: '5日', name: '月薪' }
 ];
 
 // Budget data
@@ -1673,6 +1710,7 @@ const investments = [
 let currentChannel = 'all';
 let currentYear = 'all';
 let currentMonth = 'all';
+let currentDay = 'all';
 let currentCat = 'all';
 let currentPage = 1;
 let searchQuery = '';
@@ -1784,6 +1822,7 @@ function getFilteredTransactions() {
     if (currentChannel !== 'all' && t.channel !== currentChannel) return false;
     if (currentYear !== 'all' && t.year !== currentYear) return false;
     if (currentMonth !== 'all' && t.month !== currentMonth) return false;
+    if (currentDay !== 'all' && t.day !== currentDay) return false;
     if (currentCat !== 'all' && t.category !== currentCat) return false;
     if (searchQuery && !t.name.toLowerCase().includes(searchQuery) && !t.category.toLowerCase().includes(searchQuery)) return false;
     return true;
@@ -1834,7 +1873,7 @@ function buildTransactionList() {
             <span class="tx-card-tag ${cardClass}">${cardName}</span>
           </div>
         </td>
-        <td style="color:var(--text-secondary)">${t.year}年${t.month}</td>
+        <td style="color:var(--text-secondary)">${t.year}年${t.month}${t.day}</td>
         <td class="tx-amount ${amountClass}">${amountPrefix}HKD ${Math.abs(t.amount).toLocaleString()}</td>
       </tr>`;
   });
@@ -2079,6 +2118,7 @@ function closeMonthPicker() {
 function applyMonthPicker() {
   const year = document.getElementById('pickerYear').value;
   const month = document.getElementById('pickerMonth').value;
+  const day = document.getElementById('pickerDay').value;
   
   // 處理顯示文字
   let displayText = '';
@@ -2086,20 +2126,28 @@ function applyMonthPicker() {
     const now = new Date();
     const y = now.getFullYear();
     const m = (now.getMonth() + 1) + '月';
+    const d = now.getDate();
     currentYear = String(y);
     currentMonth = m;
-    displayText = y + '年' + m + ' (今日)';
+    currentDay = d + '日';
+    displayText = y + '年' + m + d + '日 (今日)';
   } else {
     currentYear = year;
     currentMonth = month;
-    displayText = year + '年' + month;
+    currentDay = day;
+    if (day === 'all') {
+      displayText = year + '年' + month;
+    } else {
+      displayText = year + '年' + month + day;
+    }
   }
   
   document.getElementById('currentMonth').textContent = displayText;
   
   // 直接更新全域變量
-  currentYear = year;
+  currentYear = year === 'asToday' ? String(new Date().getFullYear()) : year;
   currentMonth = month;
+  currentDay = day;
   
   // 重置篩選狀態
   currentChannel = 'all';
