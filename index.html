@@ -2019,26 +2019,45 @@ Chart.defaults.animation = { duration: 800, easing: 'easeOutQuart' };
 Chart.defaults.interaction.intersect = false;
 Chart.defaults.interaction.mode = 'index';
 
-// Data labels plugin - show values on top of bars
+// Data labels - only on donut center and last bar
 const dataLabelsPlugin = {
   id: 'dataLabels',
   afterDatasetsDraw(chart) {
     const { ctx, data, scales } = chart;
+    
+    // Donut center label
+    if (chart.config.type === 'doughnut') {
+      const total = data.datasets[0].data.reduce((s, v) => s + v, 0);
+      const sum = data.datasets[0].data.reduce((s, v) => s + v, 0);
+      ctx.save();
+      ctx.font = 'bold 22px "Segoe UI"';
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const meta = chart.getDatasetMeta(0);
+      const center = chart.chartArea;
+      ctx.fillText('HKD', center.left + (center.right - center.left) / 2, center.top + (center.bottom - center.top) / 2 - 10);
+      ctx.font = 'bold 14px "Segoe UI"';
+      ctx.fillText(total.toLocaleString(), center.left + (center.right - center.left) / 2, center.top + (center.bottom - center.top) / 2 + 12);
+      ctx.restore();
+      return;
+    }
+    
     if (!scales.y) return;
+    // Only show on last bar of each dataset
     data.datasets.forEach((dataset, i) => {
       const meta = chart.getDatasetMeta(i);
       if (meta.hidden) return;
-      meta.data.forEach((bar, j) => {
-        const value = dataset.data[j];
-        if (!value || value === 0) return;
-        ctx.save();
-        ctx.font = 'bold 11px "Segoe UI", sans-serif';
-        ctx.fillStyle = 'rgba(255,255,255,0.7)';
-        ctx.textAlign = 'center';
-        const yPos = bar.y - 6;
-        ctx.fillText(formatCurrency(value, dataset.currency || 'HKD'), bar.x, yPos);
-        ctx.restore();
-      });
+      const lastIdx = dataset.data.length - 1;
+      const lastVal = dataset.data[lastIdx];
+      if (!lastVal || lastVal === 0) return;
+      const bar = meta.data[lastIdx];
+      ctx.save();
+      ctx.font = 'bold 11px "Segoe UI"';
+      ctx.fillStyle = dataset.borderColor;
+      ctx.textAlign = 'center';
+      ctx.fillText(formatCurrency(lastVal, dataset.currency || 'HKD'), bar.x, bar.y - 8);
+      ctx.restore();
     });
   }
 };
