@@ -578,6 +578,14 @@
     gap: 16px;
   }
   
+  .budget-chart-card {
+    background: var(--bg-card);
+    border-radius: 14px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 20px;
+  }
+  
   .budget-item {
     background: var(--bg-primary);
     border-radius: 14px;
@@ -1332,7 +1340,15 @@
     <div class="budget-section animate delay-4" id="budgetSection">
       <div class="section-header">
         <div class="section-title">💰 預算規劃</div>
-        <button class="btn-add" onclick="openBudgetModal()">+ 新增預算</button>
+        <button class="btn-add" onclick="openBudgetModal()">更改預算設定</button>
+      </div>
+      <div class="budget-chart-card">
+        <div class="chart-header">
+          <div class="chart-title">📊 預算概覽</div>
+        </div>
+        <div class="chart-canvas-wrap" style="height:200px">
+          <canvas id="budgetChart"></canvas>
+        </div>
       </div>
       <div class="budget-grid" id="budgetGrid"></div>
     </div>
@@ -1365,6 +1381,14 @@
           <select class="filter-select" id="analyticsYear" onchange="renderAnalytics()">
             <option value="2026">2026年</option>
             <option value="2025">2025年</option>
+          </select>
+          <select class="filter-select" id="analyticsCat" onchange="renderAnalytics()">
+            <option value="all">全部類別</option>
+            <option value="娛樂">🎭 娛樂</option>
+            <option value="購物">🛍️ 購物</option>
+            <option value="餐飲">🍔 餐飲</option>
+            <option value="數位服務">📱 數位服務</option>
+            <option value="交通">🚗 交通</option>
           </select>
         </div>
       </div>
@@ -1450,7 +1474,17 @@
     <div class="investment-section" id="investmentSection" style="display:none">
       <div class="section-header" style="margin-bottom:20px">
         <div class="section-title">📈 投資組合</div>
-        <button class="btn-add" onclick="openInvestmentModal()">+ 新增投資</button>
+        <div style="display:flex;gap:12px;align-items:center">
+          <select class="filter-select" id="invType" onchange="renderInvestment()">
+            <option value="all">全部類別</option>
+            <option value="美股">美股</option>
+            <option value="港股">港股</option>
+            <option value="加密貨幣">加密貨幣</option>
+            <option value="半導體">半導體</option>
+            <option value="ETF">ETF</option>
+          </select>
+          <button class="btn-add" onclick="openInvestmentModal()">+ 新增投資</button>
+        </div>
       </div>
 
       <!-- Big Allocation Pie Chart -->
@@ -1715,7 +1749,7 @@ let currentCat = 'all';
 let currentPage = 1;
 let searchQuery = '';
 const itemsPerPage = 10;
-let donutChart, trendChart;
+let donutChart, trendChart, budgetChart;
 let currentTheme = 'dark';
 
 // ============ INIT ============
@@ -1957,7 +1991,7 @@ function initCharts() {
     }
   });
   
-  // Trend Chart
+  // Trend Chart (支出 only)
   const ctxTrend = document.getElementById('trendChart').getContext('2d');
   if (trendChart) trendChart.destroy();
   
@@ -1975,15 +2009,6 @@ function initCharts() {
         tension: 0.4,
         pointRadius: 4,
         pointBackgroundColor: '#ff6b6b'
-      }, {
-        label: '收入',
-        data: monthlyData.income,
-        borderColor: '#00d4aa',
-        backgroundColor: 'rgba(0,212,170,0.1)',
-        fill: true,
-        tension: 0.4,
-        pointRadius: 4,
-        pointBackgroundColor: '#00d4aa'
       }]
     },
     options: {
@@ -2088,6 +2113,37 @@ function buildBudgetGrid() {
   grid.innerHTML = html;
 }
 
+function buildBudgetChart() {
+  const ctx = document.getElementById('budgetChart')?.getContext('2d');
+  if (!ctx) return;
+  if (budgetChart) budgetChart.destroy();
+  
+  const labels = Object.keys(budgets);
+  const limits = labels.map(l => budgets[l].limit);
+  const spents = labels.map(l => budgets[l].spent);
+  
+  const isLight = currentTheme === 'light';
+  const gridColor = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
+  const textColor = isLight ? '#666' : '#888';
+  
+  budgetChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: '預算上限', data: limits, backgroundColor: 'rgba(0,212,170,0.4)', borderColor: '#00d4aa', borderWidth: 1, borderRadius: 6 },
+        { label: '已支出', data: spents, backgroundColor: 'rgba(255,107,107,0.6)', borderColor: '#ff6b6b', borderWidth: 1, borderRadius: 6 }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { color: textColor, usePointStyle: true, padding: 15 } } },
+      scales: { x: { grid: { display: false }, ticks: { color: textColor } }, y: { grid: { color: gridColor }, ticks: { color: textColor } } }
+    }
+  });
+}
+
 function openBudgetModal() {
   document.getElementById('budgetModal').classList.add('show');
 }
@@ -2187,9 +2243,11 @@ function switchTab(tab) {
       el.style.display = '';
     });
   } else if (tab === 'budget') {
-    document.querySelectorAll('.budget-section, .tx-section').forEach(el => {
+    document.querySelectorAll('.budget-section').forEach(el => {
       el.style.display = '';
     });
+    buildBudgetGrid();
+    buildBudgetChart();
   } else if (tab === 'transactions') {
     document.querySelectorAll('.filter-bar, .search-box, .charts-grid, .tx-section').forEach(el => {
       el.style.display = '';
@@ -2209,11 +2267,14 @@ function switchTab(tab) {
 // ============ ANALYTICS ============
 function renderAnalytics() {
   const year = document.getElementById('analyticsYear').value;
+  const catFilter = document.getElementById('analyticsCat').value;
   const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  
+  const filterByCat = (txs) => catFilter === 'all' ? txs : txs.filter(t => t.category === catFilter);
   
   // Build month data
   const monthData = months.map(m => {
-    const txs = allTransactions.filter(t => t.year === year && t.month === m);
+    const txs = filterByCat(allTransactions.filter(t => t.year === year && t.month === m));
     const income = txs.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0);
     const expense = txs.filter(t => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
     const net = income - expense;
@@ -2245,7 +2306,9 @@ function renderAnalytics() {
   const pieCtx = document.getElementById('analyticsPieChart')?.getContext('2d');
   if (pieCtx) {
     const catMap = {};
-    allTransactions.filter(t => t.year === year && t.amount < 0).forEach(t => {
+    const baseFilter = allTransactions.filter(t => t.year === year && t.amount < 0);
+    const filtered = catFilter === 'all' ? baseFilter : baseFilter.filter(t => t.category === catFilter);
+    filtered.forEach(t => {
       catMap[t.category] = (catMap[t.category] || 0) + Math.abs(t.amount);
     });
     const pieLabels = Object.keys(catMap);
@@ -2254,7 +2317,7 @@ function renderAnalytics() {
     const pieColors = ['#ff6b6b', '#ffd93d', '#6bcbff', '#a855f7', '#4ade80', '#ff9f43'];
     const pieIcons = ['🎭', '🛍️', '🍔', '📱', '🚗', '💰'];
     
-    document.getElementById('analyticsPieLabel').textContent = `總支出: HKD ${pieTotal.toLocaleString()}`;
+    document.getElementById('analyticsPieLabel').textContent = catFilter === 'all' ? `總支出: HKD ${pieTotal.toLocaleString()}` : `${catFilter}: HKD ${pieTotal.toLocaleString()}`;
     
     if (window._analyticsPieChart) window._analyticsPieChart.destroy();
     window._analyticsPieChart = new Chart(pieCtx, {
@@ -2287,10 +2350,19 @@ function renderAnalytics() {
     }).join('');
   }
   
-  // Category charts
+  // Category charts - only show if "all" or show selected cat chart
   const catColors = { '娛樂': '#ff6b6b', '購物': '#ffd93d', '餐飲': '#6bcbff', '數位服務': '#a855f7' };
-  ['娛樂','購物','餐飲','數位服務'].forEach((cat, i) => {
-    const canvasId = ['analyticsEntertainmentChart','analyticsShoppingChart','analyticsDiningChart','analyticsDigitalChart'][i];
+  const catsToShow = catFilter === 'all' ? ['娛樂','購物','餐飲','數位服務'] : [catFilter];
+  
+  document.querySelectorAll('.analytics-section .chart-card').forEach((card, idx) => {
+    if (idx === 0) return;
+    const catIdx = idx - 1;
+    const catName = ['娛樂','購物','餐飲','數位服務'][catIdx];
+    card.style.display = catsToShow.includes(catName) ? '' : 'none';
+  });
+  
+  catsToShow.forEach((cat) => {
+    const canvasId = ['analyticsEntertainmentChart','analyticsShoppingChart','analyticsDiningChart','analyticsDigitalChart'][['娛樂','購物','餐飲','數位服務'].indexOf(cat)];
     const ctx = document.getElementById(canvasId)?.getContext('2d');
     if (!ctx) return;
     
@@ -2359,22 +2431,25 @@ function renderAnalytics() {
 
 // ============ INVESTMENT ============
 function renderInvestment() {
+  const typeFilter = document.getElementById('invType').value;
+  const filteredInv = typeFilter === 'all' ? investments : investments.filter(i => i.type === typeFilter);
+  
   // Stats
-  const totalInvested = investments.reduce((s, i) => s + i.amount, 0);
-  const totalValue = investments.reduce((s, i) => s + i.currentValue, 0);
+  const totalInvested = filteredInv.reduce((s, i) => s + i.amount, 0);
+  const totalValue = filteredInv.reduce((s, i) => s + i.currentValue, 0);
   const totalReturn = totalValue - totalInvested;
   const returnPct = totalInvested > 0 ? (totalReturn / totalInvested * 100) : 0;
-  const bestInv = investments.reduce((best, i) => i.returnPct > best.returnPct ? i : best, investments[0]);
-  const worstInv = investments.reduce((worst, i) => i.returnPct < worst.returnPct ? i : worst, investments[0]);
+  const bestInv = filteredInv.length > 0 ? filteredInv.reduce((best, i) => i.returnPct > best.returnPct ? i : best, filteredInv[0]) : null;
+  const worstInv = filteredInv.length > 0 ? filteredInv.reduce((worst, i) => i.returnPct < worst.returnPct ? i : worst, filteredInv[0]) : null;
   
   // Update total value label
-  document.getElementById('invTotalValueLabel').textContent = `總值: HKD ${totalValue.toLocaleString()}`;
+  document.getElementById('invTotalValueLabel').textContent = typeFilter === 'all' ? `總值: HKD ${totalValue.toLocaleString()}` : `${typeFilter}: HKD ${totalValue.toLocaleString()}`;
   
   document.getElementById('investmentStats').innerHTML = `
     <div class="stat-card" style="border-left:4px solid var(--accent-teal)">
       <div class="stat-label">💰 總投入</div>
       <div class="stat-value positive">HKD ${totalInvested.toLocaleString()}</div>
-      <div class="stat-trend">${investments.length} 項資產</div>
+      <div class="stat-trend">${filteredInv.length} 項資產</div>
     </div>
     <div class="stat-card" style="border-left:4px solid var(--accent-purple)">
       <div class="stat-label">📊 當前總值</div>
@@ -2395,7 +2470,7 @@ function renderInvestment() {
   
   // Allocation Chart
   const typeMap = {};
-  investments.forEach(inv => {
+  filteredInv.forEach(inv => {
     typeMap[inv.type] = (typeMap[inv.type] || 0) + inv.currentValue;
   });
   
@@ -2444,7 +2519,7 @@ function renderInvestment() {
     
     const months = ['1月','2月','3月','4月','5月','6月'];
     const monthlyData = months.map(m => {
-      return investments.filter(i => i.date === m).reduce((s, i) => s + i.amount, 0);
+      return filteredInv.filter(i => i.date === m).reduce((s, i) => s + i.amount, 0);
     });
     
     window._invMonthlyChart = new Chart(monthlyCtx, {
@@ -2476,7 +2551,7 @@ function renderInvestment() {
   const typeIcons = { '美股': '🇺🇸', '港股': '🇭🇰', '加密貨幣': '₿', '半導體': '🔬', 'ETF': '📊', '基金': '🎯', '其他': '📦' };
   
   let listHtml = '';
-  investments.forEach(inv => {
+  filteredInv.forEach(inv => {
     const returnColor = inv.returnPct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
     const returnPrefix = inv.returnPct >= 0 ? '+' : '';
     listHtml += `<tr>
@@ -2485,12 +2560,11 @@ function renderInvestment() {
       <td style="color:var(--text-secondary)">${inv.year}年${inv.date}</td>
       <td style="text-align:right">HKD ${inv.amount.toLocaleString()}</td>
       <td style="text-align:right;color:${returnColor}">${returnPrefix}${inv.returnPct}%</td>
-      <td style="text-align:right;font-weight:600">HKD ${inv.currentValue.toLocaleString()}</td>
+      <td style="text-align:right">HKD ${inv.currentValue.toLocaleString()}</td>
     </tr>`;
   });
-  invList.innerHTML = listHtml || '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">暫無投資記錄</td></tr>';
-  
-  document.getElementById('investmentCount').textContent = investments.length + ' 項投資';
+  invList.innerHTML = listHtml || '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted)">暫無投資記錄</td></tr>';
+  document.getElementById('investmentCount').textContent = `${filteredInv.length} 項資產`;
 }
 
 function openInvestmentModal() {
