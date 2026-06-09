@@ -434,6 +434,24 @@
     box-shadow: var(--shadow);
   }
   
+  /* Pulse red for negative balance warning */
+  @keyframes pulseRed {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  
+  /* Number count animation */
+  @keyframes countUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* Chart glow effect */
+  @keyframes chartGlow {
+    0%, 100% { filter: drop-shadow(0 0 4px currentColor); }
+    50% { filter: drop-shadow(0 0 12px currentColor); }
+  }
+  
   .stat-card.income { border-left: 4px solid var(--accent-teal); }
   .stat-card.expense { border-left: 4px solid var(--accent-red); }
   .stat-card.balance { border-left: 4px solid var(--accent-purple); }
@@ -2019,16 +2037,16 @@ Chart.defaults.animation = { duration: 800, easing: 'easeOutQuart' };
 Chart.defaults.interaction.intersect = false;
 Chart.defaults.interaction.mode = 'index';
 
-// Data labels - only on donut center and last bar
+// Data labels - only on donut center (bars rely on tooltip)
 const dataLabelsPlugin = {
   id: 'dataLabels',
   afterDatasetsDraw(chart) {
-    const { ctx, data, scales } = chart;
+    const ctx = chart.ctx;
+    const data = chart.data;
     
-    // Donut center label
+    // Donut center - show total
     if (chart.config.type === 'doughnut') {
       const total = data.datasets[0].data.reduce((s, v) => s + v, 0);
-      const sum = data.datasets[0].data.reduce((s, v) => s + v, 0);
       ctx.save();
       ctx.font = 'bold 22px "Segoe UI"';
       ctx.fillStyle = '#fff';
@@ -2043,20 +2061,20 @@ const dataLabelsPlugin = {
       return;
     }
     
-    if (!scales.y) return;
-    // Only show on last bar of each dataset
-    data.datasets.forEach((dataset, i) => {
-      const meta = chart.getDatasetMeta(i);
+    // Bar/Line charts - only show last data point label
+    if (!chart.scales.y) return;
+    data.datasets.forEach((dataset) => {
+      const meta = chart.getDatasetMeta(0);
       if (meta.hidden) return;
       const lastIdx = dataset.data.length - 1;
       const lastVal = dataset.data[lastIdx];
       if (!lastVal || lastVal === 0) return;
-      const bar = meta.data[lastIdx];
+      const point = meta.data[lastIdx];
       ctx.save();
       ctx.font = 'bold 11px "Segoe UI"';
       ctx.fillStyle = dataset.borderColor;
       ctx.textAlign = 'center';
-      ctx.fillText(formatCurrency(lastVal, dataset.currency || 'HKD'), bar.x, bar.y - 8);
+      ctx.fillText(formatCurrency(lastVal, dataset.currency || 'HKD'), point.x, point.y - 10);
       ctx.restore();
     });
   }
@@ -2298,6 +2316,28 @@ function nextPage() {
   }
 }
 
+// ============ ANIMATIONS ============
+// Animate number counting
+function animateValue(el, start, end, prefix, suffix, decimals = 0) {
+  const duration = 1000;
+  const startTime = performance.now();
+  
+  function update(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const easeOut = 1 - Math.pow(1 - progress, 3);
+    const current = start + (end - start) * easeOut;
+    el.textContent = prefix + current.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + suffix;
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+// Pulse animation for negative balance warning
+function pulseRed(el) {
+  el.style.animation = 'pulseRed 2s ease-in-out infinite';
+}
+
 // ============ STATS ============
 function updateStats() {
   const filtered = getFilteredTransactions();
@@ -2306,10 +2346,14 @@ function updateStats() {
   const net = income - expense;
   const savingsRate = income > 0 ? ((net / income) * 100).toFixed(1) : 0;
   
-  document.getElementById('totalIncome').textContent = '+HKD ' + income.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-  document.getElementById('totalExpense').textContent = '-HKD ' + expense.toLocaleString();
-  document.getElementById('netCashflow').textContent = (net >= 0 ? '+' : '-') + 'HKD ' + Math.abs(net).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-  document.getElementById('netCashflow').className = 'stat-value ' + (net >= 0 ? 'positive' : 'negative');
+  animateValue(document.getElementById('totalIncome'), 0, income, '+HKD ', '');
+  animateValue(document.getElementById('totalExpense'), 0, expense, '-HKD ', '', 0);
+  
+  const netEl = document.getElementById('netCashflow');
+  netEl.textContent = (net >= 0 ? '+' : '-') + 'HKD ' + Math.abs(net).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  netEl.className = 'stat-value ' + (net >= 0 ? 'positive' : 'negative');
+  if (net < 0) pulseRed(netEl);
+  
   document.getElementById('savingsRate').textContent = savingsRate + '%';
 }
 
@@ -2330,7 +2374,7 @@ function initCharts() {
       labels: catData.labels,
       datasets: [{
         data: catData.values,
-        backgroundColor: ['#ff6b6b', '#ffd93d', '#6bcbff', '#a855f7', '#4ade80', '#ff9f43'],
+        backgroundColor: ['#ff4757', '#ffa502', '#2ed573', '#1e90ff', '#a855f7', '#ff6b81'],
         borderWidth: 0,
         cutout: '65%'
       }]
@@ -2721,7 +2765,7 @@ function renderAnalytics() {
   }
   
   // Category charts - only show if "all" or show selected cat chart
-  const catColors = { '娛樂': '#ff6b6b', '購物': '#ffd93d', '餐飲': '#6bcbff', '數位服務': '#a855f7' };
+  const catColors = { '娛樂': '#ff4757', '購物': '#ffa502', '餐飲': '#2ed573', '數位服務': '#1e90ff' };
   const catsToShow = catFilter === 'all' ? ['娛樂','購物','餐飲','數位服務'] : [catFilter];
   
   document.querySelectorAll('.analytics-section .chart-card').forEach((card, idx) => {
@@ -3005,7 +3049,7 @@ function renderSummary() {
   
   const catLabels = Object.keys(catMap);
   const catData = Object.values(catMap);
-  const catColors = ['#ff6b6b', '#ffd93d', '#6bcbff', '#a855f7', '#4ade80', '#ff9f43'];
+  const catColors = ['#ff4757', '#ffa502', '#2ed573', '#1e90ff', '#a855f7', '#ff6b81'];
   const catIcons = ['🎭', '🛍️', '🍔', '📱', '🚗', '💰'];
   
   const catCtx = document.getElementById('summaryCatPieChart')?.getContext('2d');
