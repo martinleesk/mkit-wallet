@@ -1873,7 +1873,16 @@
 
 <script>
 // ============ DATA ============
-const allTransactions = [
+let allTransactions = [];
+
+// Load transactions from JSON
+async function loadTransactions() {
+  try {
+    const res = await fetch('./data/transactions.json');
+    allTransactions = await res.json();
+  } catch (e) {
+    console.warn('Using embedded data fallback');
+    allTransactions = [
   { channel: 'alipay', category: '數位服務', amount: -61.13, month: '6月', year: '2026', day: '3日', name: '上海稀宇科技有限公司' },
   { channel: 'cathay', category: '娛樂', amount: -2398, month: '5月', year: '2026', day: '15日', name: 'CITYLINE 演唱會票' },
   { channel: 'alipay', category: '購物', amount: -357.50, month: '5月', year: '2026', day: '8日', name: '正佳旗艦店' },
@@ -1897,7 +1906,9 @@ const allTransactions = [
   { channel: 'cathay', category: '娛樂', amount: -1800, month: '12月', year: '2025', day: '25日', name: '聖誕派對' },
   { channel: 'alipay', category: '購物', amount: -3500, month: '12月', year: '2025', day: '20日', name: '聖誕禮物' },
   { channel: 'cathay', category: '收入', amount: 15000, month: '12月', year: '2025', day: '5日', name: '月薪' }
-];
+    ];
+  }
+}
 
 // Budget data
 const budgets = {
@@ -1959,7 +1970,8 @@ Chart.defaults.plugins.tooltip.callbacks.label = function(context) {
 };
 
 // ============ INIT ============
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadTransactions();
   updateGreeting();
   updateTime();
   setInterval(updateTime, 1000);
