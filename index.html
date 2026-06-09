@@ -1454,7 +1454,10 @@
     <div class="tx-section animate delay-5" id="txSection">
       <div class="tx-header">
         <div class="section-title">📋 交易記錄</div>
-        <div class="tx-count" id="txCount">23 筆交易</div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="filter-chip" onclick="exportCSV()" style="cursor:pointer;background:var(--bg-card-hover);border:1px solid var(--border-color)">📥 匯出CSV</button>
+          <div class="tx-count" id="txCount">23 筆交易</div>
+        </div>
       </div>
       <table class="tx-table">
         <thead>
@@ -1968,6 +1971,46 @@ Chart.defaults.plugins.tooltip.callbacks.label = function(context) {
   return label;
 };
 
+// ============ EXPORT ============
+function exportCSV() {
+  const headers = ['日期', '類別', '名稱', '渠道', '金額', '貨幣'];
+  const rows = allTransactions.map(t => [
+    `${t.year}年${t.month}${t.day}`,
+    t.category,
+    t.name,
+    t.channel,
+    t.amount,
+    t.currency || 'HKD'
+  ]);
+  
+  const csv = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `mkit-wallet-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ============ CURRENCY ============
+const currencies = {
+  HKD: { symbol: 'HK$', rate: 1 },
+  CNY: { symbol: '¥', rate: 1.12 },   // 1 CNY ≈ 1.12 HKD
+  USD: { symbol: '$', rate: 7.78 }     // 1 USD ≈ 7.78 HKD
+};
+let displayCurrency = 'HKD';
+
+function formatCurrency(amount, currency = 'HKD') {
+  const curr = currencies[currency] || currencies.HKD;
+  return curr.symbol + Math.abs(amount).toLocaleString();
+}
+
+function convertToHKD(amount, fromCurrency) {
+  const curr = currencies[fromCurrency] || currencies.HKD;
+  return amount * curr.rate;
+}
+
 // ============ INIT ============
 document.addEventListener('DOMContentLoaded', async () => {
   await loadTransactions();
@@ -2122,10 +2165,11 @@ function buildTransactionList() {
           <div class="tx-meta">
             <span>${t.category}</span>
             <span class="tx-card-tag ${cardClass}">${cardName}</span>
+            ${t.currency !== 'HKD' ? '<span class="tx-card-tag" style="background:rgba(255,200,0,0.2);color:#ffd700;font-size:10px">' + t.currency + '</span>' : ''}
           </div>
         </td>
         <td style="color:var(--text-secondary)">${t.year}年${t.month}${t.day}</td>
-        <td class="tx-amount ${amountClass}">${amountPrefix}HKD ${Math.abs(t.amount).toLocaleString()}</td>
+        <td class="tx-amount ${amountClass}">${amountPrefix}${formatCurrency(t.amount, t.currency)}</td>
       </tr>`;
   });
   
