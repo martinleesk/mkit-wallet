@@ -1316,6 +1316,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
         <span>投資</span>
       </div>
+      <div class="nav-item" onclick="switchTab('summary')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg>
+        <span>年度</span>
+      </div>
       
       <div class="nav-divider"></div>
       
@@ -1621,6 +1625,92 @@
             </tr>
           </thead>
           <tbody id="investmentList"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Summary Section -->
+    <div class="summary-section" id="summarySection" style="display:none">
+      <div class="section-header" style="margin-bottom:20px">
+        <div class="section-title">📊 年度總結</div>
+        <select class="filter-select" id="summaryYear" onchange="renderSummary()">
+          <option value="2026">2026年</option>
+          <option value="2025">2025年</option>
+        </select>
+      </div>
+      
+      <!-- Year Overview Stats -->
+      <div class="stats-grid" style="margin-bottom:24px">
+        <div class="stat-card income">
+          <div class="stat-icon">💰</div>
+          <div class="stat-label">💰 年度總收入</div>
+          <div class="stat-value positive" id="summaryIncome">HKD 0</div>
+          <div class="stat-trend" id="summaryIncomeCount">0 筆收入</div>
+        </div>
+        <div class="stat-card expense">
+          <div class="stat-icon">💸</div>
+          <div class="stat-label">💸 年度總支出</div>
+          <div class="stat-value negative" id="summaryExpense">HKD 0</div>
+          <div class="stat-trend" id="summaryExpenseCount">0 筆支出</div>
+        </div>
+        <div class="stat-card balance">
+          <div class="stat-icon">📊</div>
+          <div class="stat-label">📊 年度淨現金流</div>
+          <div class="stat-value purple" id="summaryCashflow">HKD 0</div>
+          <div class="stat-trend" id="summarySavingsRate">儲蓄率 0%</div>
+        </div>
+        <div class="stat-card savings">
+          <div class="stat-icon">🎯</div>
+          <div class="stat-label">🎯 總消費筆數</div>
+          <div class="stat-value green" id="summaryTxCount">0</div>
+          <div class="stat-trend" id="summaryAvgTx">平均每筆 HKD 0</div>
+        </div>
+      </div>
+      
+      <!-- Monthly Breakdown -->
+      <div class="chart-card" style="margin-bottom:20px">
+        <div class="chart-header">
+          <div class="chart-title">📅 月度收支趨勢</div>
+        </div>
+        <div class="chart-canvas-wrap" style="height:280px">
+          <canvas id="summaryMonthlyChart"></canvas>
+        </div>
+      </div>
+      
+      <!-- Category Breakdown -->
+      <div class="charts-grid" style="margin-bottom:20px">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title">🏷️ 支出分類分佈</div>
+          </div>
+          <div class="chart-canvas-wrap" style="height:200px">
+            <canvas id="summaryCatPieChart"></canvas>
+          </div>
+          <div class="cat-legend" id="summaryCatLegend"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title">🏆 Top 消費商戶</div>
+          </div>
+          <div id="summaryTopMerchants" style="padding:16px;font-size:13px;color:var(--text-secondary)"></div>
+        </div>
+      </div>
+      
+      <!-- Monthly Comparison Table -->
+      <div class="tx-section" style="margin-bottom:0">
+        <div class="tx-header">
+          <div class="section-title">📋 月度對比</div>
+        </div>
+        <table class="tx-table">
+          <thead>
+            <tr>
+              <th>月份</th>
+              <th style="text-align:right">收入</th>
+              <th style="text-align:right">支出</th>
+              <th style="text-align:right">淨現金流</th>
+            </tr>
+          </thead>
+          <tbody id="summaryMonthlyTable"></tbody>
         </table>
       </div>
     </div>
@@ -2352,7 +2442,7 @@ function switchTab(tab) {
   event?.target?.closest('.nav-item')?.classList.add('active');
   
   // Hide all sections
-  document.querySelectorAll('.stats-grid, .filter-bar, .charts-grid, .budget-section, .tx-section, .analytics-section, .investment-section').forEach(el => {
+  document.querySelectorAll('.stats-grid, .filter-bar, .charts-grid, .budget-section, .tx-section, .analytics-section, .investment-section, .summary-section').forEach(el => {
     el.style.display = 'none';
   });
   
@@ -2377,6 +2467,9 @@ function switchTab(tab) {
   } else if (tab === 'investment') {
     document.getElementById('investmentSection').style.display = '';
     renderInvestment();
+  } else if (tab === 'summary') {
+    document.getElementById('summarySection').style.display = '';
+    renderSummary();
   }
   
   toggleSidebar();
@@ -2691,6 +2784,135 @@ function openInvestmentModal() {
 
 function closeInvestmentModal() {
   document.getElementById('investmentModal').classList.remove('show');
+}
+
+// ============ SUMMARY ============
+function renderSummary() {
+  const year = document.getElementById('summaryYear').value;
+  const yearTxs = allTransactions.filter(t => t.year === year);
+  
+  // Income & Expense totals
+  const totalIncome = yearTxs.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0);
+  const totalExpense = yearTxs.filter(t => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
+  const netCashflow = totalIncome - totalExpense;
+  const savingsRate = totalIncome > 0 ? (netCashflow / totalIncome * 100) : 0;
+  const txCount = yearTxs.length;
+  const avgTx = txCount > 0 ? totalExpense / txCount : 0;
+  
+  document.getElementById('summaryIncome').textContent = 'HKD ' + totalIncome.toLocaleString();
+  document.getElementById('summaryIncomeCount').textContent = yearTxs.filter(t => t.amount > 0).length + ' 筆收入';
+  document.getElementById('summaryExpense').textContent = 'HKD ' + totalExpense.toLocaleString();
+  document.getElementById('summaryExpenseCount').textContent = yearTxs.filter(t => t.amount < 0).length + ' 筆支出';
+  document.getElementById('summaryCashflow').textContent = (netCashflow >= 0 ? '+' : '') + 'HKD ' + netCashflow.toLocaleString();
+  document.getElementById('summaryCashflow').className = 'stat-value ' + (netCashflow >= 0 ? 'purple' : 'negative');
+  document.getElementById('summarySavingsRate').textContent = '儲蓄率 ' + savingsRate.toFixed(1) + '%';
+  document.getElementById('summaryTxCount').textContent = txCount;
+  document.getElementById('summaryAvgTx').textContent = '平均每筆 HKD ' + avgTx.toLocaleString(undefined, {maximumFractionDigits: 0});
+  
+  // Monthly chart
+  const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const monthlyIncome = months.map(m => yearTxs.filter(t => t.month === m && t.amount > 0).reduce((s, t) => s + t.amount, 0));
+  const monthlyExpense = months.map(m => yearTxs.filter(t => t.month === m && t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0));
+  
+  const monthlyCtx = document.getElementById('summaryMonthlyChart')?.getContext('2d');
+  if (monthlyCtx) {
+    if (window._summaryMonthlyChart) window._summaryMonthlyChart.destroy();
+    window._summaryMonthlyChart = new Chart(monthlyCtx, {
+      type: 'bar',
+      data: {
+        labels: months,
+        datasets: [
+          { label: '收入', data: monthlyIncome, backgroundColor: '#00d4aa99', borderColor: '#00d4aa', borderWidth: 1 },
+          { label: '支出', data: monthlyExpense, backgroundColor: '#ff6b6b99', borderColor: '#ff6b6b', borderWidth: 1 }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', labels: { color: '#888', usePointStyle: true } } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#888' } },
+          y: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#888' } }
+        }
+      }
+    });
+  }
+  
+  // Category pie chart
+  const catMap = {};
+  yearTxs.filter(t => t.amount < 0).forEach(t => {
+    catMap[t.category] = (catMap[t.category] || 0) + Math.abs(t.amount);
+  });
+  
+  const catLabels = Object.keys(catMap);
+  const catData = Object.values(catMap);
+  const catColors = ['#ff6b6b', '#ffd93d', '#6bcbff', '#a855f7', '#4ade80', '#ff9f43'];
+  const catIcons = ['🎭', '🛍️', '🍔', '📱', '🚗', '💰'];
+  
+  const catCtx = document.getElementById('summaryCatPieChart')?.getContext('2d');
+  if (catCtx) {
+    if (window._summaryCatPieChart) window._summaryCatPieChart.destroy();
+    window._summaryCatPieChart = new Chart(catCtx, {
+      type: 'doughnut',
+      data: {
+        labels: catLabels,
+        datasets: [{ data: catData, backgroundColor: catColors.slice(0, catLabels.length), borderWidth: 0 }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+  
+  // Category legend
+  const legendEl = document.getElementById('summaryCatLegend');
+  if (legendEl) {
+    const total = catData.reduce((s, v) => s + v, 0);
+    legendEl.innerHTML = catLabels.map((cat, i) => {
+      const pct = total > 0 ? (catData[i] / total * 100).toFixed(1) : 0;
+      return `<div class="cat-item" style="display:flex;align-items:center;gap:8px;padding:6px 0">
+        <span style="width:10px;height:10px;border-radius:50%;background:${catColors[i]}"></span>
+        <span style="flex:1;font-size:13px">${catIcons[i] || ''} ${cat}</span>
+        <span style="color:var(--text-muted);font-size:12px">${pct}%</span>
+      </div>`;
+    }).join('');
+  }
+  
+  // Top merchants
+  const merchantMap = {};
+  yearTxs.filter(t => t.amount < 0 && t.name).forEach(t => {
+    merchantMap[t.name] = (merchantMap[t.name] || 0) + Math.abs(t.amount);
+  });
+  const topMerchants = Object.entries(merchantMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  
+  const topEl = document.getElementById('summaryTopMerchants');
+  if (topEl) {
+    topEl.innerHTML = topMerchants.length > 0 ? topMerchants.map(([name, amount], i) => 
+      `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color)">
+        <span style="color:var(--text-muted)">${i + 1}.</span>
+        <span style="flex:1;margin-left:8px" class="cat-item">${name}</span>
+        <span style="color:var(--accent-red)">HKD ${amount.toLocaleString()}</span>
+      </div>`
+    ).join('') : '暫無消費記錄';
+  }
+  
+  // Monthly comparison table
+  const tableEl = document.getElementById('summaryMonthlyTable');
+  if (tableEl) {
+    tableEl.innerHTML = months.map(m => {
+      const mIncome = yearTxs.filter(t => t.month === m && t.amount > 0).reduce((s, t) => s + t.amount, 0);
+      const mExpense = yearTxs.filter(t => t.month === m && t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
+      const mNet = mIncome - mExpense;
+      return `<tr>
+        <td>${m}</td>
+        <td style="text-align:right;color:var(--accent-teal)">${mIncome > 0 ? '+HKD ' + mIncome.toLocaleString() : '-'}</td>
+        <td style="text-align:right;color:var(--accent-red)">${mExpense > 0 ? '-HKD ' + mExpense.toLocaleString() : '-'}</td>
+        <td style="text-align:right;color:${mNet >= 0 ? 'var(--accent-purple)' : 'var(--accent-red)'}">${mNet >= 0 ? '+' : ''}HKD ${mNet.toLocaleString()}</td>
+      </tr>`;
+    }).join('');
+  }
 }
 
 function saveInvestment() {
