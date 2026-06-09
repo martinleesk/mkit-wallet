@@ -1538,11 +1538,14 @@
 <div class="modal-overlay" id="monthModal">
   <div class="modal">
     <div class="modal-title">📅 選擇日期</div>
-    <div class="form-row">
+    <label style="display:flex;align-items:center;gap:8px;margin-bottom:16px;cursor:pointer">
+      <input type="checkbox" id="pickerToday" onchange="toggleTodayPicker()" style="width:20px;height:20px">
+      <span style="font-size:14px">今日</span>
+    </label>
+    <div class="form-row" id="manualDateRow">
       <div class="form-group">
         <label class="form-label">年份</label>
         <select class="form-input" id="pickerYear">
-          <option value="asToday">今日</option>
           <option value="2026">2026年</option>
           <option value="2025">2025年</option>
         </select>
@@ -2176,61 +2179,54 @@ function closeMonthPicker() {
   document.getElementById('monthModal').classList.remove('show');
 }
 
-function applyMonthPicker() {
-  const year = document.getElementById('pickerYear').value;
-  const month = document.getElementById('pickerMonth').value;
-  const day = document.getElementById('pickerDay').value;
+function toggleTodayPicker() {
+  const isChecked = document.getElementById('pickerToday').checked;
+  const manualRow = document.getElementById('manualDateRow');
+  manualRow.style.opacity = isChecked ? '0.4' : '1';
+  manualRow.style.pointerEvents = isChecked ? 'none' : '';
   
-  // 處理顯示文字
-  let displayText = '';
-  if (year === 'asToday') {
+  if (isChecked) {
     const now = new Date();
-    const y = now.getFullYear();
-    const m = (now.getMonth() + 1) + '月';
-    const d = now.getDate();
-    currentYear = String(y);
-    currentMonth = m;
-    currentDay = d + '日';
-    displayText = y + '年' + m + d + '日 (今日)';
+    const year = now.getFullYear().toString();
+    const month = (now.getMonth() + 1).toString() + '月';
+    const day = now.getDate().toString() + '日';
+    
+    document.getElementById('pickerYear').value = year;
+    document.getElementById('pickerMonth').value = month;
+    document.getElementById('pickerDay').value = day;
+  }
+}
+
+function applyMonthPicker() {
+  const isToday = document.getElementById('pickerToday').checked;
+  
+  if (isToday) {
+    const now = new Date();
+    currentYear = now.getFullYear().toString();
+    currentMonth = (now.getMonth() + 1).toString() + '月';
+    currentDay = now.getDate().toString() + '日';
+    document.getElementById('currentMonth').textContent = currentYear + '年' + currentMonth + currentDay + ' (今日)';
   } else {
-    currentYear = year;
-    currentMonth = month;
-    currentDay = day;
-    if (day === 'all') {
-      displayText = year + '年' + month;
+    currentYear = document.getElementById('pickerYear').value;
+    currentMonth = document.getElementById('pickerMonth').value;
+    currentDay = document.getElementById('pickerDay').value;
+    
+    if (currentDay === 'all') {
+      document.getElementById('currentMonth').textContent = currentYear + '年' + currentMonth;
     } else {
-      displayText = year + '年' + month + day;
+      document.getElementById('currentMonth').textContent = currentYear + '年' + currentMonth + currentDay;
     }
   }
-  
-  document.getElementById('currentMonth').textContent = displayText;
-  
-  // 直接更新全域變量
-  currentYear = year === 'asToday' ? String(new Date().getFullYear()) : year;
-  currentMonth = month;
-  currentDay = day;
   
   // 重置篩選狀態
   currentChannel = 'all';
   currentCat = 'all';
-  
-  // 更新chips視覺狀態
-  document.querySelectorAll('.filter-bar .filter-group:nth-child(1) .filter-chip').forEach(el => {
-    el.classList.toggle('active', el.textContent.includes('全部'));
-  });
-  document.querySelectorAll('.filter-bar .filter-group:nth-child(2) .filter-chip').forEach(el => {
-    el.classList.toggle('active', el.textContent.includes('全部'));
-  });
-  
   currentPage = 1;
+  
   buildTransactionList();
   updateStats();
-  updateCharts();
-  
-  // 等待CSS transition完成後關閉modal
-  setTimeout(() => {
-    closeMonthPicker();
-  }, 350);
+  initCharts();
+  closeMonthPicker();
 }
 
 // Tab switching
