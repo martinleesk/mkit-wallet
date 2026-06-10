@@ -1657,6 +1657,26 @@
         </div>
       </div>
       <div class="budget-grid" id="budgetGrid"></div>
+
+      <!-- Budget Analytics -->
+      <div class="charts-grid" style="margin-top:20px">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title">📊 各類別預算使用</div>
+          </div>
+          <div class="chart-canvas-wrap">
+            <canvas id="budgetCategoryChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title">📈 月度預算 vs 實際支出</div>
+          </div>
+          <div class="chart-canvas-wrap">
+            <canvas id="budgetVsActualChart"></canvas>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Transaction Section -->
@@ -2693,17 +2713,6 @@ function initCharts() {
         pointBackgroundColor: '#ff6b6b',
         pointBorderColor: '#1a1a2e',
         pointBorderWidth: 2
-      }, {
-        label: '收入',
-        data: monthlyData.income,
-        borderColor: '#00d4aa',
-        backgroundColor: incomeGrad,
-        fill: true,
-        tension: 0.4,
-        pointRadius: 5,
-        pointBackgroundColor: '#00d4aa',
-        pointBorderColor: '#1a1a2e',
-        pointBorderWidth: 2
       }]
     },
     options: {
@@ -2839,6 +2848,93 @@ function buildBudgetChart() {
   });
 }
 
+function buildBudgetCategoryChart() {
+  const ctx = document.getElementById('budgetCategoryChart')?.getContext('2d');
+  if (!ctx) return;
+
+  const labels = Object.keys(budgets);
+  const spents = labels.map(l => budgets[l].spent);
+  const limits = labels.map(l => budgets[l].limit);
+  const pct = labels.map(l => limits[l] > 0 ? (spents[l] / limits[l] * 100).toFixed(0) : 0);
+
+  const isLight = currentTheme === 'light';
+  const textColor = isLight ? '#666' : '#888';
+
+  if (window.budgetCatChart) window.budgetCatChart.destroy();
+
+  window.budgetCatChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: spents,
+        backgroundColor: ['#ff6b6b','#ffa502','#ffdd59','#2ed573','#1e90ff','#a55eea','#ff6b81','#00d4aa'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '60%',
+      plugins: {
+        legend: { position: 'bottom', labels: { color: textColor, usePointStyle: true, padding: 12, font: { size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const i = ctx.dataIndex;
+              return ` ${labels[i]}: HKD ${spents[i].toLocaleString()} / ${pct[i]}%`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function buildBudgetVsActualChart() {
+  const ctx = document.getElementById('budgetVsActualChart')?.getContext('2d');
+  if (!ctx) return;
+
+  const isLight = currentTheme === 'light';
+  const gridColor = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
+  const textColor = isLight ? '#666' : '#888';
+
+  // Get last 6 months
+  const now = new Date();
+  const months = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
+  }
+
+  const totalBudget = Object.values(budgets).reduce((s, b) => s + b.limit, 0);
+  const actuals = months.map(m => {
+    return transactions.filter(t => t.date?.startsWith(m) && t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  });
+
+  if (window.budgetVsChart) window.budgetVsChart.destroy();
+
+  window.budgetVsChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: months.map(m => m.slice(5) + '月'),
+      datasets: [
+        { label: '實際支出', data: actuals, backgroundColor: 'rgba(255,107,107,0.7)', borderRadius: 6, borderSkipped: false },
+        { label: '月均預算', data: Array(6).fill(totalBudget), backgroundColor: 'rgba(0,212,170,0.4)', borderRadius: 6, borderSkipped: false }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { color: textColor, usePointStyle: true, padding: 15, font: { size: 11 } } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: textColor } },
+        y: { grid: { color: gridColor }, ticks: { color: textColor, callback: v => 'HKD ' + v.toLocaleString() } }
+      }
+    }
+  });
+}
+
 function openBudgetModal() {
   document.getElementById('budgetModal').classList.add('show');
 }
@@ -2936,6 +3032,8 @@ function switchTab(tab) {
     });
     buildBudgetGrid();
     buildBudgetChart();
+    buildBudgetCategoryChart();
+    buildBudgetVsActualChart();
   } else if (tab === 'transactions') {
     document.querySelectorAll('.filter-bar, .search-box, .charts-grid, .tx-section').forEach(el => {
       el.style.display = '';
