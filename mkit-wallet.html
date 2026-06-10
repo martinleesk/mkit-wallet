@@ -2,9 +2,26 @@
 <html lang="zh-HK">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#00d4aa">
+<meta name="description" content="MKiT數字錢包 - 收支記錄、分析、統計">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MKiT Wallet">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%230a0a0f' width='180' height='180' rx='40'/><text x='90' y='130' font-size='80' text-anchor='middle' fill='%2300d4aa'>💰</text></svg>">
 <title>MKiT 數字錢包 Pro</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then((reg) => console.log('MKiT Wallet PWA: Service Worker registered'))
+      .catch((err) => console.log('MKiT Wallet PWA: Service Worker registration failed', err));
+  });
+}
+</script>
 <style>
   :root {
     --bg-primary: #0a0a0f;

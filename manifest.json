@@ -1,0 +1,27 @@
+{
+  "name": "MKiT 數字錢包 Pro",
+  "short_name": "MKiT Wallet",
+  "description": "MKiT數字錢包 - 收支記錄、分析、統計",
+  "start_url": "/mkit-wallet/",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#00d4aa",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%230a0a0f' width='512' height='512' rx='96'/><text x='256' y='320' font-size='280' text-anchor='middle' fill='%2300d4aa'>💰</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%230a0a0f' width='192' height='192' rx='32'/><text x='96' y='130' font-size='100' text-anchor='middle' fill='%2300d4aa'>💰</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "productivity"],
+  "lang": "zh-HK",
+  "dir": "ltr"
+}
