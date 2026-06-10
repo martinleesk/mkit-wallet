@@ -25,15 +25,22 @@
   }
   
   [data-theme="light"] {
-    --bg-primary: #f5f7fa;
+    --bg-primary: #f8f7f4;
     --bg-secondary: #ffffff;
     --bg-card: #ffffff;
-    --bg-card-hover: #f0f2f5;
+    --bg-card-hover: #f2f1ee;
     --text-primary: #1a1a2e;
-    --text-secondary: #666;
-    --text-muted: #999;
-    --border-color: rgba(0,0,0,0.1);
-    --shadow: 0 4px 24px rgba(0,0,0,0.08);
+    --text-secondary: #5a5a6e;
+    --text-muted: #9999aa;
+    --border-color: #e5e3de;
+    --shadow: 0 2px 16px rgba(0,0,0,0.06);
+    --shadow-lg: 0 8px 40px rgba(0,0,0,0.1);
+    --accent-red: #e74c3c;
+    --accent-teal: #00b894;
+    --accent-yellow: #f39c12;
+    --accent-purple: #9b59b6;
+    --accent-blue: #3498db;
+    --accent-green: #27ae60;
   }
   
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-text-size-adjust: 100%; }
@@ -56,6 +63,7 @@
     overflow-x: hidden;
     width: 100%;
     max-width: 100vw;
+    transition: background 0.3s ease, color 0.3s ease;
   }
   
   .app-container {
@@ -891,6 +899,65 @@
     vertical-align: middle;
   }
   
+  /* Theme Toggle Switch */
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 20px;
+    transition: background 0.2s;
+  }
+  
+  .theme-toggle:hover {
+    background: var(--bg-card-hover);
+  }
+  
+  .theme-toggle input { display: none; }
+  
+  .toggle-track {
+    width: 52px;
+    height: 28px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    position: relative;
+    transition: background 0.3s;
+    box-shadow: inset 0 1px 4px rgba(0,0,0,0.2);
+  }
+  
+  .toggle-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    background: var(--accent-teal);
+    border-radius: 50%;
+    transition: transform 0.3s cubic-bezier(0.68, -0.2, 0.27, 1.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+  
+  .toggle-icon {
+    position: absolute;
+    font-size: 11px;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  
+  .toggle-icon.sun { opacity: 0; transform: scale(0.5) rotate(-30deg); }
+  .toggle-icon.moon { opacity: 1; transform: scale(1) rotate(0deg); }
+  
+  input:checked + .toggle-track .toggle-thumb {
+    transform: translateX(24px);
+    background: var(--accent-yellow);
+  }
+  
+  input:checked + .toggle-track .toggle-icon.sun { opacity: 1; transform: scale(1) rotate(0deg); }
+  input:checked + .toggle-track .toggle-icon.moon { opacity: 0; transform: scale(0.5) rotate(30deg); }
+  
   .tx-amount { font-weight: 600; text-align: right; }
   .tx-amount.debit { color: var(--text-primary); }
   .tx-amount.credit { color: var(--accent-green); }
@@ -1438,6 +1505,15 @@
       </div>
       
       <div class="top-right">
+        <label class="theme-toggle" title="切換深色/淺色模式" onclick="toggleTheme()">
+          <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+          <span class="toggle-track">
+            <span class="toggle-thumb">
+              <span class="toggle-icon sun">☀️</span>
+              <span class="toggle-icon moon">🌙</span>
+            </span>
+          </span>
+        </label>
         <div class="month-badge" onclick="openMonthPicker()">
           <span>📅</span>
           <span id="currentMonth">2026年5月</span>
@@ -2202,14 +2278,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 function toggleTheme() {
   currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', currentTheme);
+  localStorage.setItem('mkit-theme', currentTheme);
+  
+  // Sync sidebar icon
   const icon = currentTheme === 'dark' ? '🌙' : '☀️';
   document.getElementById('themeIconSidebar').textContent = icon;
-
-  // Re-render charts with new colors
-  setTimeout(() => {
-    initCharts();
-    buildTransactionList();
-  }, 100);
+  
+  // Sync toggle checkbox
+  const checkbox = document.getElementById('themeToggle');
+  if (checkbox) checkbox.checked = currentTheme === 'light';
+  
+  // Re-init charts to update colors
+  setTimeout(() => { initCharts(); }, 50);
 }
 
 // Greeting & Time
