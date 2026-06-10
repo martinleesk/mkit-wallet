@@ -788,6 +788,25 @@
   .budget-bar-fill.yellow { background: linear-gradient(90deg, var(--accent-yellow), #ffb347); }
   .budget-bar-fill.red { background: linear-gradient(90deg, var(--accent-red), #ff4757); }
   
+  .insight-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  
+  .insight-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+  }
+  
+  .month-insight {
+    display: grid;
+    gap: 0;
+  }
+  
   .budget-alert {
     display: flex;
     align-items: center;
@@ -866,6 +885,11 @@
   .tx-card-tag.cathay { background: rgba(255,107,107,0.2); color: var(--accent-red); }
   .tx-card-tag.hsbc { background: rgba(0,200,255,0.2); color: var(--accent-blue); }
   .tx-card-tag.alipay { background: rgba(0,212,170,0.2); color: var(--accent-teal); }
+  
+  .recurring-badge {
+    font-size: 11px;
+    vertical-align: middle;
+  }
   
   .tx-amount { font-weight: 600; text-align: right; }
   .tx-amount.debit { color: var(--text-primary); }
@@ -1444,7 +1468,7 @@
     <!-- Search Bar -->
     <div class="search-box animate delay-2">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="searchInput" placeholder="搜尋交易記錄..." oninput="handleSearch(this.value)">
+      <input type="text" id="searchInput" placeholder="搜尋 / 金額範圍如 100-500 ..." oninput="handleSearch(this.value)">
     </div>
 
     <!-- Stats Cards -->
@@ -1474,6 +1498,43 @@
             <div class="stat-trend" id="savingsTrend">偏低，建議提高</div>
           </div>
         </div>
+
+    <!-- Month Progress + YoY Comparison + Savings Goal -->
+    <div class="month-insight animate delay-2" style="margin:16px 24px">
+      <!-- Current month progress -->
+      <div class="insight-card" id="monthProgress" style="margin-bottom:16px">
+        <div class="insight-title">📅 當月進度</div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="monthProgressFill" style="width:0%"></div>
+          </div>
+          <div class="progress-label" id="monthProgressText">0/31 天 (0%)</div>
+        </div>
+        <div class="budget-usage" id="budgetUsage" style="margin-top:10px;font-size:12px;color:var(--text-muted)"></div>
+      </div>
+      
+      <!-- YoY Comparison -->
+      <div class="insight-card" id="yoyComparison" style="margin-bottom:16px">
+        <div class="insight-title">📆 今年 vs 去年同月</div>
+        <div id="yoyContent" style="font-size:13px;color:var(--text-secondary)"></div>
+      </div>
+      
+      <!-- Savings Goal -->
+      <div class="insight-card" id="savingsGoal" style="margin-bottom:16px">
+        <div class="insight-title">🎯 儲蓄目標 <span class="tooltip"><span class="tooltip-info">i</span><span class="tooltip-text">設定每月儲蓄目標，追蹤進度</span></span></div>
+        <div class="savings-goal-input" style="margin-bottom:12px">
+          <input type="number" id="savingsTarget" placeholder="每月目標 (HKD)" style="width:140px;padding:8px 12px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:13px" onchange="updateSavingsGoal()">
+          <button class="filter-chip" style="cursor:pointer;border:1px solid var(--border-color)" onclick="setSavingsTarget()">設定</button>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill green" id="savingsProgressFill" style="width:0%"></div>
+          </div>
+          <div class="progress-label" id="savingsProgressText">HKD 0 / HKD 0 (0%)</div>
+        </div>
+      </div>
+    </div>
+
     <div class="charts-grid animate delay-3">
       <div class="chart-card">
         <div class="chart-header">
@@ -2127,6 +2188,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   updateGreeting();
   updateTime();
   setInterval(updateTime, 1000);
+  updateMonthProgress();
+  updateYoYComparison();
+  updateSavingsGoal();
   initCharts();
   buildTransactionList();
   updateStats();
@@ -2215,7 +2279,24 @@ function applyFilters() {
 }
 
 function handleSearch(query) {
-  searchQuery = query.toLowerCase();
+  // Check for amount range pattern like "100-500" or "100"
+  const rangeMatch = query.match(/^(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)$/);
+  const singleAmountMatch = query.match(/^\d+(?:\.\d+)?$/);
+  
+  if (rangeMatch) {
+    window._searchMinAmount = parseFloat(rangeMatch[1]);
+    window._searchMaxAmount = parseFloat(rangeMatch[2]);
+    window._searchText = '';
+  } else if (singleAmountMatch) {
+    window._searchMinAmount = parseFloat(singleAmountMatch[0]);
+    window._searchMaxAmount = parseFloat(singleAmountMatch[0]);
+    window._searchText = '';
+  } else {
+    window._searchMinAmount = null;
+    window._searchMaxAmount = null;
+    window._searchText = query.toLowerCase();
+  }
+  
   currentPage = 1;
   buildTransactionList();
 }
@@ -2228,7 +2309,16 @@ function getFilteredTransactions() {
     if (currentMonth !== 'all' && t.month !== currentMonth) return false;
     if (currentDay !== 'all' && t.day !== currentDay) return false;
     if (currentCat !== 'all' && t.category !== currentCat) return false;
-    if (searchQuery && !t.name.toLowerCase().includes(searchQuery) && !t.category.toLowerCase().includes(searchQuery)) return false;
+    
+    // Text search
+    if (window._searchText && !t.name.toLowerCase().includes(window._searchText) && !t.category.toLowerCase().includes(window._searchText)) return false;
+    
+    // Amount range search
+    if (window._searchMinAmount !== null && window._searchMaxAmount !== null) {
+      const absAmount = Math.abs(t.amount);
+      if (absAmount < window._searchMinAmount || absAmount > window._searchMaxAmount) return false;
+    }
+    
     return true;
   });
 }
@@ -2267,11 +2357,15 @@ function buildTransactionList() {
     const amountClass = t.amount < 0 ? 'debit' : 'credit';
     const amountPrefix = t.amount < 0 ? '-' : '+';
     
+    // Recurring detection: same name appears multiple times in dataset
+    const recurringCount = allTransactions.filter(x => x.name === t.name && x.amount < 0).length;
+    const isRecurring = recurringCount >= 2;
+    
     html += `
       <tr>
         <td><div class="tx-icon-cell" style="background:${iconBg}">${icon}</div></td>
         <td>
-          <div class="tx-name">${t.name}</div>
+          <div class="tx-name">${t.name}${isRecurring ? ' <span class="recurring-badge">🔄</span>' : ''}</div>
           <div class="tx-meta">
             <span>${t.category}</span>
             <span class="tx-card-tag ${cardClass}">${cardName}</span>
@@ -2355,6 +2449,100 @@ function updateStats() {
   if (net < 0) pulseRed(netEl);
   
   document.getElementById('savingsRate').textContent = savingsRate + '%';
+}
+
+// ============ INSIGHTS ============
+function updateMonthProgress() {
+  const now = new Date();
+  const dayOfMonth = now.getDate();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const pct = Math.min((dayOfMonth / daysInMonth) * 100, 100);
+  
+  document.getElementById('monthProgressFill').style.width = pct + '%';
+  document.getElementById('monthProgressText').textContent = `${dayOfMonth}/${daysInMonth} 天 (${pct.toFixed(0)}%)`;
+  
+  // Budget usage
+  const monthMap = {0:'1月',1:'2月',2:'3月',3:'4月',4:'5月',5:'6月',6:'7月',7:'8月',8:'9月',9:'10月',10:'11月',11:'12月'};
+  const month = monthMap[now.getMonth()];
+  const year = now.getFullYear().toString();
+  const monthTxs = allTransactions.filter(t => t.month === month && t.year === year);
+  const monthExpense = monthTxs.filter(t => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
+  
+  const totalBudget = Object.values(budgets).reduce((s, b) => s + b.limit, 0);
+  const budgetPct = totalBudget > 0 ? (monthExpense / totalBudget * 100) : 0;
+  
+  const budgetEl = document.getElementById('budgetUsage');
+  if (budgetEl) {
+    budgetEl.innerHTML = `本月支出 <b style="color:${budgetPct > 80 ? 'var(--accent-red)' : 'var(--accent-teal)'}">HKD ${monthExpense.toLocaleString()}</b> / 預算 HKD ${totalBudget.toLocaleString()} (${budgetPct.toFixed(0)}%)`;
+  }
+}
+
+function updateYoYComparison() {
+  const monthMap = {0:'1月',1:'2月',2:'3月',3:'4月',4:'5月',5:'6月',6:'7月',7:'8月',8:'9月',9:'10月',10:'11月',11:'12月'};
+  const now = new Date();
+  const month = monthMap[now.getMonth()];
+  const thisYear = now.getFullYear().toString();
+  const lastYear = (now.getFullYear() - 1).toString();
+  
+  const thisMonthTxs = allTransactions.filter(t => t.month === month && t.year === thisYear);
+  const lastMonthTxs = allTransactions.filter(t => t.month === month && t.year === lastYear);
+  
+  const thisIncome = thisMonthTxs.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0);
+  const thisExpense = thisMonthTxs.filter(t => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
+  const lastIncome = lastMonthTxs.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0);
+  const lastExpense = lastMonthTxs.filter(t => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
+  
+  const incomeChange = lastIncome > 0 ? ((thisIncome - lastIncome) / lastIncome * 100) : 0;
+  const expenseChange = lastExpense > 0 ? ((thisExpense - lastExpense) / lastExpense * 100) : 0;
+  
+  const arrowUp = '<span style="color:var(--accent-teal)">▲</span>';
+  const arrowDown = '<span style="color:var(--accent-red)">▼</span>';
+  
+  document.getElementById('yoyContent').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px">
+      <div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">收入</div>
+        <div style="font-size:15px;font-weight:600;color:var(--accent-teal)">+HKD ${thisIncome.toLocaleString()}</div>
+        <div style="font-size:11px;margin-top:2px">${lastIncome > 0 ? (incomeChange >= 0 ? arrowUp : arrowDown) + ' ' + Math.abs(incomeChange).toFixed(1) + '% vs 去年同月' : '無去年數據'}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">支出</div>
+        <div style="font-size:15px;font-weight:600;color:var(--accent-red)">-HKD ${thisExpense.toLocaleString()}</div>
+        <div style="font-size:11px;margin-top:2px">${lastExpense > 0 ? (expenseChange <= 0 ? arrowUp : arrowDown) + ' ' + Math.abs(expenseChange).toFixed(1) + '% vs 去年同月' : '無去年數據'}</div>
+      </div>
+    </div>
+  `;
+}
+
+function setSavingsTarget() {
+  const input = document.getElementById('savingsTarget');
+  const target = parseFloat(input.value);
+  if (target > 0) {
+    localStorage.setItem('savingsTarget', target);
+    updateSavingsGoal();
+  }
+}
+
+function updateSavingsGoal() {
+  const target = parseFloat(localStorage.getItem('savingsTarget')) || 0;
+  if (!target) return;
+  
+  const now = new Date();
+  const monthMap = {0:'1月',1:'2月',2:'3月',3:'4月',4:'5月',5:'6月',6:'7月',7:'8月',8:'9月',9:'10月',10:'11月',11:'12月'};
+  const month = monthMap[now.getMonth()];
+  const year = now.getFullYear().toString();
+  const monthTxs = allTransactions.filter(t => t.month === month && t.year === year);
+  
+  const income = monthTxs.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0);
+  const expense = monthTxs.filter(t => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
+  const saved = income - expense;
+  const pct = Math.min((saved / target) * 100, 100);
+  
+  document.getElementById('savingsProgressFill').style.width = pct + '%';
+  document.getElementById('savingsProgressText').textContent = `HKD ${saved.toLocaleString()} / HKD ${target.toLocaleString()} (${pct.toFixed(0)}%)`;
+  
+  const fill = document.getElementById('savingsProgressFill');
+  fill.className = 'progress-bar-fill ' + (pct >= 80 ? 'green' : pct >= 50 ? 'orange' : '');
 }
 
 // ============ CHARTS ============
