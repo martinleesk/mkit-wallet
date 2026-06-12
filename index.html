@@ -542,6 +542,40 @@ if ('serviceWorker' in navigator) {
     font-size: 12px;
     color: var(--accent-red);
   }
+  .budget-alert.warning {
+    color: #ff9800;
+  }
+  .budget-item.pulse {
+    animation: budgetPulse 2s ease-in-out infinite;
+  }
+  @keyframes budgetPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 82, 82, 0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(255, 82, 82, 0); }
+  }
+  .budget-amounts.highlight {
+    color: var(--accent-red);
+    font-weight: 700;
+  }
+  
+  /* Swipe Delete Button */
+  .delete-btn {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 80px;
+    background: var(--accent-red);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 10;
+  }
+  .tx-row {
+    transition: transform 0.3s;
+  }
 
   /* Transaction Section */
   .tx-section {
@@ -1508,7 +1542,7 @@ function buildTransactionList() {
   const pageTx = filtered.slice(startIdx, startIdx + itemsPerPage);
   
   let html = '';
-  pageTx.forEach(t => {
+  pageTx.forEach((t, idx) => {
     const iconBg = {
       '娛樂': 'rgba(255,107,107,0.2)',
       '購物': 'rgba(255,217,61,0.2)',
@@ -1527,9 +1561,10 @@ function buildTransactionList() {
     const cardName = t.channel === 'cathay' ? '國泰' : t.channel === 'hsbc' ? 'HSBC' : 'Alipay';
     const amountClass = t.amount < 0 ? 'debit' : 'credit';
     const amountPrefix = t.amount < 0 ? '-' : '+';
+    const txIndex = allTransactions.indexOf(t);
     
     html += `
-      <tr>
+      <tr class="tx-row" data-index="${txIndex}">
         <td><div class="tx-icon-cell" style="background:${iconBg}">${icon}</div></td>
         <td>
           <div class="tx-name">${t.name}</div>
@@ -1548,6 +1583,14 @@ function buildTransactionList() {
   }
   
   txList.innerHTML = html;
+  
+  // Add touch handlers for swipe actions
+  document.querySelectorAll('.tx-row').forEach(row => {
+    row.addEventListener('touchstart', handleSwipeStart, { passive: true });
+    row.addEventListener('touchmove', handleSwipeMove, { passive: true });
+    row.addEventListener('touchend', handleSwipeEnd);
+  });
+}
   
   // Pagination
   const pagination = document.getElementById('pagination');
@@ -1729,24 +1772,32 @@ function buildCategoryLegend() {
 function buildBudgetGrid() {
   const grid = document.getElementById('budgetGrid');
   const icons = { '娛樂': '🎭', '購物': '🛍️', '餐飲': '🍔', '數位服務': '📱', '交通': '🚗' };
-  const colors = { '娛樂': 'red', '購物': 'yellow', '餐飲': 'green', '數位服務': 'yellow', '交通': 'green' };
   
   let html = '';
   Object.entries(budgets).forEach(([cat, data]) => {
     const pct = Math.min((data.spent / data.limit) * 100, 100);
-    const colorClass = pct >= 90 ? 'red' : pct >= 70 ? 'yellow' : 'green';
     const isOver = data.spent > data.limit;
+    const isCritical = pct >= 80 && pct < 100;
+    const isDanger = pct >= 100 || isOver;
+    const colorClass = isDanger ? 'red' : isCritical ? 'yellow' : 'green';
+    
+    let alertMsg = '';
+    if (isDanger) {
+      alertMsg = '<div class="budget-alert">🚨 已超預算！</div>';
+    } else if (isCritical) {
+      alertMsg = '<div class="budget-alert warning">⚠️ 接近上限</div>';
+    }
     
     html += `
-      <div class="budget-item">
+      <div class="budget-item ${isCritical || isDanger ? 'pulse' : ''}">
         <div class="budget-item-header">
           <div class="budget-cat"><span>${icons[cat] || '📦'}</span> ${cat}</div>
-          <div class="budget-amounts">HKD ${data.spent.toLocaleString()} / ${data.limit.toLocaleString()}</div>
+          <div class="budget-amounts ${isCritical || isDanger ? 'highlight' : ''}">HKD ${data.spent.toLocaleString()} / ${data.limit.toLocaleString()}</div>
         </div>
         <div class="budget-bar-bg">
           <div class="budget-bar-fill ${colorClass}" style="width:${pct}%"></div>
         </div>
-        ${isOver ? '<div class="budget-alert">⚠️ 已超支！</div>' : ''}
+        ${alertMsg}
       </div>`;
   });
   
@@ -1861,6 +1912,90 @@ function switchTab(tab) {
   }
   
   toggleSidebar();
+}
+
+// ============ SWIPE TO DELETE ============
+let swipeStartX = 0;
+let swipeCurrentX = 0;
+let swipedRow = null;
+
+function handleSwipeStart(e) {
+  swipeStartX = e.touches[0].clientX;
+  swipedRow = e.target.closest('.tx-row');
+}
+
+function handleSwipeMove(e) {
+  if (!swipedRow) return;
+  swipeCurrentX = e.touches[0].clientX;
+  const diff = swipeCurrentX - swipeStartX;
+  
+  // Only allow left swipe (to reveal delete)
+  if (diff < 0) {
+    const transform = Math.max(diff, -100);
+    swipedRow.style.transform = `translateX(${transform}px)`;
+    swipedRow.style.transition = 'none';
+  }
+}
+
+function handleSwipeEnd(e) {
+  if (!swipedRow) return;
+  
+  const diff = swipeCurrentX - swipeStartX;
+  
+  if (diff < -80) {
+    // Swipe threshold met - show delete button
+    swipedRow.style.transform = 'translateX(-80px)';
+    swipedRow.style.transition = 'transform 0.3s';
+    showDeleteAction(swipedRow);
+  } else {
+    // Reset position
+    swipedRow.style.transform = '';
+    swipedRow.style.transition = 'transform 0.3s';
+  }
+  
+  setTimeout(() => {
+    if (swipedRow) {
+      swipedRow.style.transform = '';
+      swipedRow.style.transition = '';
+    }
+    swipedRow = null;
+    swipeStartX = 0;
+    swipeCurrentX = 0;
+  }, 300);
+}
+
+function showDeleteAction(row) {
+  // Check if delete button already exists
+  if (row.querySelector('.delete-btn')) return;
+  
+  const deleteBtn = document.createElement('div');
+  deleteBtn.className = 'delete-btn';
+  deleteBtn.innerHTML = '🗑️';
+  deleteBtn.onclick = (e) => {
+    e.stopPropagation();
+    const idx = parseInt(row.dataset.index);
+    deleteTransaction(idx);
+  };
+  
+  row.style.position = 'relative';
+  row.appendChild(deleteBtn);
+  
+  // Auto-hide after 3 seconds
+  setTimeout(() => {
+    if (row && row.parentNode) {
+      row.style.transform = '';
+      deleteBtn.remove();
+    }
+  }, 3000);
+}
+
+function deleteTransaction(idx) {
+  if (confirm('確定刪除這筆交易？')) {
+    allTransactions.splice(idx, 1);
+    buildTransactionList();
+    updateStats();
+    updateCharts();
+  }
 }
 </script>
 </body>
