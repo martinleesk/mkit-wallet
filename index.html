@@ -899,9 +899,9 @@ if ('serviceWorker' in navigator) {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         <span>預算</span>
       </div>
-      <div class="nav-item" onclick="switchTab('analytics')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-        <span>分析</span>
+      <div class="nav-item" onclick="switchTab('transactions')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <span>交易</span>
       </div>
       <div class="nav-item" onclick="switchTab('investment')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
@@ -1004,6 +1004,8 @@ if ('serviceWorker' in navigator) {
           <option value="11月">11月</option>
           <option value="12月">12月</option>
         </select>
+        <input type="date" class="filter-select" id="filterDate" onchange="applyFilters()" style="display:none;width:130px;">
+        <button class="filter-chip" id="dateFilterBtn" onclick="toggleDateFilter()">日期</button>
       </div>
       <div class="filter-group">
         <div class="filter-chip active" onclick="filterChannel('all')">全部</div>
@@ -1275,6 +1277,7 @@ let currentChannel = 'all';
 let currentYear = 'all';
 let currentMonth = 'all';
 let currentCat = 'all';
+let currentDate = 'all';
 let currentPage = 1;
 let searchQuery = '';
 const itemsPerPage = 10;
@@ -1286,6 +1289,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateGreeting();
   updateTime();
   setInterval(updateTime, 1000);
+  switchTab('overview');
   initCharts();
   buildTransactionList();
   updateStats();
@@ -1352,10 +1356,28 @@ function filterCat(cat) {
 function applyFilters() {
   currentYear = document.getElementById('filterYear').value;
   currentMonth = document.getElementById('filterMonth').value;
+  currentDate = document.getElementById('filterDate').value;
   currentPage = 1;
   buildTransactionList();
   updateStats();
   updateCharts();
+}
+
+function toggleDateFilter() {
+  const dateInput = document.getElementById('filterDate');
+  const dateBtn = document.getElementById('dateFilterBtn');
+  if (dateInput.style.display === 'none') {
+    dateInput.style.display = '';
+    dateBtn.classList.add('active');
+    dateBtn.textContent = '全部日期';
+  } else {
+    dateInput.style.display = 'none';
+    dateInput.value = '';
+    currentDate = 'all';
+    dateBtn.classList.remove('active');
+    dateBtn.textContent = '日期';
+    applyFilters();
+  }
 }
 
 function handleSearch(query) {
@@ -1371,6 +1393,12 @@ function getFilteredTransactions() {
     if (currentYear !== 'all' && t.year !== currentYear) return false;
     if (currentMonth !== 'all' && t.month !== currentMonth) return false;
     if (currentCat !== 'all' && t.category !== currentCat) return false;
+    if (currentDate !== 'all') {
+      const dateParts = currentDate.split('-');
+      const dateYear = dateParts[0];
+      const dateMonth = dateParts[1] + '月';
+      if (t.year !== dateYear || t.month !== dateMonth) return false;
+    }
     if (searchQuery && !t.name.toLowerCase().includes(searchQuery) && !t.category.toLowerCase().includes(searchQuery)) return false;
     return true;
   });
@@ -1683,7 +1711,7 @@ function switchTab(tab) {
   });
   
   if (tab === 'overview') {
-    document.querySelectorAll('.stats-grid, .filter-bar, .charts-grid, .budget-section, .tx-section').forEach(el => {
+    document.querySelectorAll('.stats-grid, .filter-bar, .charts-grid, .budget-section').forEach(el => {
       el.style.display = '';
     });
   } else if (tab === 'budget') {
@@ -1691,6 +1719,11 @@ function switchTab(tab) {
       el.style.display = '';
     });
     document.getElementById('budgetSection').style.display = '';
+  } else if (tab === 'transactions') {
+    document.querySelectorAll('.filter-bar, .tx-section').forEach(el => {
+      el.style.display = '';
+    });
+    buildTransactionList();
   } else if (tab === 'investment') {
     document.getElementById('investmentSection').style.display = '';
     updateInvestmentStats();
