@@ -1214,6 +1214,7 @@ if ('serviceWorker' in navigator) {
     <div class="budget-section animate delay-4" id="investmentSection" style="display:none;">
       <div class="section-header">
         <div class="section-title">📈 投資組合</div>
+        <button class="btn-add" style="padding:6px 10px;font-size:12px" onclick="refreshInvestmentPrices()">🔄 更新價</button>
         <button class="btn-add" onclick="openInvestmentModal()">+ 新增持仓</button>
       </div>
       <div class="budget-grid" id="investmentGrid">
@@ -2231,6 +2232,63 @@ function closeReportModal() {
     modal.classList.remove('show');
     setTimeout(() => modal.remove(), 300);
   }
+}
+
+// ============ INVESTMENT PRICE REFRESH ============
+function refreshInvestmentPrices() {
+  if (investments.length === 0) {
+    alert('暫無投資持倉');
+    return;
+  }
+  
+  const inv = investments[prompt('選擇持倉（輸入編號）:\n' + investments.map((v, i) => `${i+1}. ${v.name}`).join('\n')) - 1];
+  if (!inv) return;
+  
+  const newPrice = parseFloat(prompt(`更新 ${inv.name} 的現價 (HKD):\n目前: HKD ${inv.currentPrice}`));
+  if (isNaN(newPrice) || newPrice <= 0) {
+    alert('請輸入有效的價格');
+    return;
+  }
+  
+  inv.currentPrice = newPrice;
+  updateInvestmentStats();
+  alert(`${inv.name} 已更新為 HKD ${newPrice}`);
+}
+
+// Also update openInvestmentModal to use modal instead of prompts
+function openAddInvestmentModal() {
+  document.getElementById('addInvModal').classList.add('show');
+}
+
+function closeAddInvModal() {
+  document.getElementById('addInvModal').classList.remove('show');
+}
+
+function saveInvestment() {
+  const name = document.getElementById('invName').value.trim();
+  const shares = parseFloat(document.getElementById('invShares').value);
+  const cost = parseFloat(document.getElementById('invCost').value);
+  const current = parseFloat(document.getElementById('invCurrent').value);
+  
+  if (!name || isNaN(shares) || isNaN(cost) || isNaN(current)) {
+    alert('請填寫所有欄位');
+    return;
+  }
+  
+  investments.push({ name, shares, cost, currentPrice: current });
+  updateInvestmentStats();
+  closeAddInvModal();
+  
+  // Clear form
+  document.getElementById('invName').value = '';
+  document.getElementById('invShares').value = '';
+  document.getElementById('invCost').value = '';
+  document.getElementById('invCurrent').value = '';
+}
+
+// Fix openInvestmentModal to use modal
+function openInvestmentModal() {
+  openAddInvestmentModal();
 }
 
 // ============ SWIPE TABS ============
