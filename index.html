@@ -379,12 +379,12 @@ if ('serviceWorker' in navigator) {
   .filter-chip {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 14px;
-    border-radius: 20px;
+    gap: 4px;
+    padding: 4px 7px;
+    border-radius: 6px;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
-    font-size: 13px;
+    font-size: 10px;
     color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.2s;
@@ -793,6 +793,8 @@ if ('serviceWorker' in navigator) {
   }
   
   @media (max-width: 768px) {
+    html { font-size: 15px; }
+    
     .sidebar {
       transform: translateX(-100%);
     }
@@ -837,6 +839,23 @@ if ('serviceWorker' in navigator) {
       overflow-x: auto;
       flex-wrap: nowrap;
       padding-bottom: 8px;
+    }
+    
+    .filter-chip, .filter-select {
+      white-space: nowrap;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    html { font-size: 14px; }
+    
+    .main-content {
+      padding: 12px;
+    }
+    
+    .filter-bar {
+      flex-wrap: wrap;
+      gap: 4px;
     }
     
     .filter-chip, .filter-select {
@@ -988,18 +1007,18 @@ if ('serviceWorker' in navigator) {
       </div>
       <div class="filter-group">
         <div class="filter-chip active" onclick="filterChannel('all')">全部</div>
-        <div class="filter-chip" onclick="filterChannel('cathay')">💳 國泰</div>
-        <div class="filter-chip" onclick="filterChannel('hsbc')">🏦 HSBC</div>
-        <div class="filter-chip" onclick="filterChannel('alipay')">💚 Alipay</div>
+        <div class="filter-chip" onclick="filterChannel('cathay')">國泰</div>
+        <div class="filter-chip" onclick="filterChannel('hsbc')">HSBC</div>
+        <div class="filter-chip" onclick="filterChannel('alipay')">Alipay</div>
       </div>
       <div class="filter-group">
         <div class="filter-chip active" onclick="filterCat('all')">全部</div>
-        <div class="filter-chip" onclick="filterCat('娛樂')">🎭 娛樂</div>
-        <div class="filter-chip" onclick="filterCat('購物')">🛍️ 購物</div>
-        <div class="filter-chip" onclick="filterCat('餐飲')">🍔 餐飲</div>
-        <div class="filter-chip" onclick="filterCat('數位服務')">📱 數位</div>
-        <div class="filter-chip" onclick="filterCat('交通')">🚗 交通</div>
-        <div class="filter-chip" onclick="filterCat('收入')">💰 收入</div>
+        <div class="filter-chip" onclick="filterCat('娛樂')">娛樂</div>
+        <div class="filter-chip" onclick="filterCat('購物')">購物</div>
+        <div class="filter-chip" onclick="filterCat('餐飲')">餐飲</div>
+        <div class="filter-chip" onclick="filterCat('數位服務')">數位</div>
+        <div class="filter-chip" onclick="filterCat('交通')">交通</div>
+        <div class="filter-chip" onclick="filterCat('收入')">收入</div>
       </div>
     </div>
 
