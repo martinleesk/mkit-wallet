@@ -879,6 +879,40 @@ if ('serviceWorker' in navigator) {
   .delay-4 { animation-delay: 0.2s; opacity: 0; }
   .delay-5 { animation-delay: 0.25s; opacity: 0; }
   .delay-6 { animation-delay: 0.3s; opacity: 0; }
+
+/* FAB Button */
+.fab {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+.fab:active {
+  transform: scale(0.95);
+}
+
+/* Swipe hint animation */
+@keyframes swipeHint {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-5px); }
+}
 </style>
 </head>
 <body>
@@ -1112,6 +1146,9 @@ if ('serviceWorker' in navigator) {
   </main>
 </div>
 
+<!-- FAB: Quick Add Transaction -->
+<button class="fab" onclick="openAddTxModal()">+</button>
+
 <!-- Month Picker Modal -->
 <div class="modal-overlay" id="monthModal">
   <div class="modal">
@@ -1167,6 +1204,59 @@ if ('serviceWorker' in navigator) {
     </div>
     <button class="btn-primary" onclick="saveBudget()">儲存</button>
     <button class="btn-secondary" onclick="closeBudgetModal()">取消</button>
+  </div>
+</div>
+
+<!-- Add Transaction Modal -->
+<div class="modal-overlay" id="addTxModal">
+  <div class="modal">
+    <div class="modal-title">➕ 新增交易</div>
+    <div class="form-group">
+      <label class="form-label">名稱</label>
+      <input type="text" class="form-input" id="txName" placeholder="例如：麥當勞">
+    </div>
+    <div class="form-group">
+      <label class="form-label">金額 (HKD)</label>
+      <input type="number" class="form-input" id="txAmount" placeholder="例如：-150">
+    </div>
+    <div class="form-group">
+      <label class="form-label">付款方式</label>
+      <select class="form-input" id="txChannel">
+        <option value="cathay">國泰</option>
+        <option value="hsbc">HSBC</option>
+        <option value="alipay">Alipay</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">類別</label>
+      <select class="form-input" id="txCategory">
+        <option value="餐飲">餐飲</option>
+        <option value="購物">購物</option>
+        <option value="娛樂">娛樂</option>
+        <option value="交通">交通</option>
+        <option value="數位服務">數位服務</option>
+        <option value="收入">收入</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">月份</label>
+      <select class="form-input" id="txMonth">
+        <option value="1月">1月</option>
+        <option value="2月">2月</option>
+        <option value="3月">3月</option>
+        <option value="4月">4月</option>
+        <option value="5月">5月</option>
+        <option value="6月" selected>6月</option>
+        <option value="7月">7月</option>
+        <option value="8月">8月</option>
+        <option value="9月">9月</option>
+        <option value="10月">10月</option>
+        <option value="11月">11月</option>
+        <option value="12月">12月</option>
+      </select>
+    </div>
+    <button class="btn-primary" onclick="saveNewTransaction()">儲存</button>
+    <button class="btn-secondary" onclick="closeAddTxModal()">取消</button>
   </div>
 </div>
 
@@ -1679,6 +1769,47 @@ function saveBudget() {
     buildBudgetGrid();
     closeBudgetModal();
   }
+}
+
+// ============ ADD TRANSACTION ============
+function openAddTxModal() {
+  document.getElementById('addTxModal').classList.add('show');
+}
+
+function closeAddTxModal() {
+  document.getElementById('addTxModal').classList.remove('show');
+}
+
+function saveNewTransaction() {
+  const name = document.getElementById('txName').value.trim();
+  const amount = parseFloat(document.getElementById('txAmount').value);
+  const channel = document.getElementById('txChannel').value;
+  const category = document.getElementById('txCategory').value;
+  const month = document.getElementById('txMonth').value;
+  
+  if (!name || isNaN(amount)) {
+    alert('請填寫名稱和金額');
+    return;
+  }
+  
+  const newTx = {
+    channel,
+    category,
+    amount,
+    month,
+    year: '2026',
+    name
+  };
+  
+  allTransactions.unshift(newTx);
+  buildTransactionList();
+  updateStats();
+  updateCharts();
+  closeAddTxModal();
+  
+  // Clear form
+  document.getElementById('txName').value = '';
+  document.getElementById('txAmount').value = '';
 }
 
 // ============ MONTH PICKER ============
