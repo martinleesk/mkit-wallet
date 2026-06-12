@@ -630,6 +630,25 @@ if ('serviceWorker' in navigator) {
   .tx-row {
     transition: transform 0.3s;
   }
+  
+  /* Savings Goal Progress */
+  .savings-progress {
+    width: 100%;
+    height: 8px;
+    background: var(--border-color);
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .savings-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-green));
+    border-radius: 4px;
+    transition: width 0.5s ease;
+  }
+  .savings-progress-bar.complete {
+    background: linear-gradient(90deg, var(--accent-green), #00ff88);
+  }
 
   /* Transaction Section */
   .tx-section {
@@ -1097,9 +1116,13 @@ if ('serviceWorker' in navigator) {
       </div>
       <div class="stat-card savings">
         <div class="stat-icon">🎯</div>
-        <div class="stat-label">🎯 儲蓄率</div>
-        <div class="stat-value green" id="savingsRate">0.7%</div>
-        <div class="stat-trend" id="savingsTrend">偏低，建議提高</div>
+        <div class="stat-label">🎯 儲蓄目標</div>
+        <div class="stat-value green" id="savingsGoalDisplay">HKD ${savingsGoal.toLocaleString()}</div>
+        <div class="savings-progress">
+          <div class="savings-progress-bar" id="savingsProgressBar"></div>
+        </div>
+        <div class="stat-trend" id="savingsTrend">已存 ${savingsBalance.toLocaleString()} / 目標 ${savingsGoal.toLocaleString()}</div>
+        <button class="btn-add" style="margin-top:8px;padding:4px 8px;font-size:10px" onclick="openSavingsGoalModal()">設定目標</button>
       </div>
     </div>
 
@@ -1217,6 +1240,7 @@ if ('serviceWorker' in navigator) {
       <div class="tx-header">
         <div class="section-title">📋 交易記錄</div>
         <div class="tx-count" id="txCount">23 筆交易</div>
+        <button class="btn-add" style="padding:6px 12px;font-size:12px" onclick="exportTransactionsCSV()">📥 匯出</button>
       </div>
       <table class="tx-table">
         <thead>
@@ -1373,6 +1397,23 @@ if ('serviceWorker' in navigator) {
   </div>
 </div>
 
+<!-- Savings Goal Modal -->
+<div class="modal-overlay" id="savingsGoalModal">
+  <div class="modal">
+    <div class="modal-title">🎯 設定儲蓄目標</div>
+    <div class="form-group">
+      <label class="form-label">目標金額 (HKD)</label>
+      <input type="number" class="form-input" id="savingsGoalInput" placeholder="例如：50000">
+    </div>
+    <div class="form-group">
+      <label class="form-label">已存金額 (HKD)</label>
+      <input type="number" class="form-input" id="savingsBalanceInput" placeholder="例如：10000">
+    </div>
+    <button class="btn-primary" onclick="saveSavingsGoal()">儲存</button>
+    <button class="btn-secondary" onclick="closeSavingsGoalModal()">取消</button>
+  </div>
+</div>
+
 <script>
 // ============ DATA ============
 const allTransactions = [
@@ -1485,9 +1526,10 @@ let currentPage = 1;
 let searchQuery = '';
 const itemsPerPage = 10;
 let donutChart, trendChart;
-let currentTheme = 'dark';
 
-// ============ INIT ============
+// Savings Goal
+let savingsGoal = parseFloat(localStorage.getItem('savingsGoal')) || 0;
+let savingsBalance = parseFloat(localStorage.getItem('savingsBalance')) || 0;
 document.addEventListener('DOMContentLoaded', () => {
   updateGreeting();
   updateTime();
@@ -1498,6 +1540,8 @@ document.addEventListener('DOMContentLoaded', () => {
   updateStats();
   buildBudgetGrid();
   buildCategoryLegend();
+  updateSavingsDisplay();
+  updateInvestmentStats();
 });
 let currentTheme = 'dark';
 const themes = ['dark', 'light', 'ocean', 'sunset', 'forest'];
@@ -2018,6 +2062,74 @@ function switchTab(tab) {
   }
   
   toggleSidebar();
+}
+
+// ============ SAVINGS GOAL ============
+function openSavingsGoalModal() {
+  document.getElementById('savingsGoalInput').value = savingsGoal || '';
+  document.getElementById('savingsBalanceInput').value = savingsBalance || '';
+  document.getElementById('savingsGoalModal').classList.add('show');
+}
+
+function closeSavingsGoalModal() {
+  document.getElementById('savingsGoalModal').classList.remove('show');
+}
+
+function saveSavingsGoal() {
+  const goal = parseFloat(document.getElementById('savingsGoalInput').value);
+  const balance = parseFloat(document.getElementById('savingsBalanceInput').value);
+  
+  if (isNaN(goal) || goal <= 0) {
+    alert('請輸入有效的目標金額');
+    return;
+  }
+  
+  savingsGoal = goal;
+  savingsBalance = isNaN(balance) ? 0 : balance;
+  localStorage.setItem('savingsGoal', savingsGoal);
+  localStorage.setItem('savingsBalance', savingsBalance);
+  updateSavingsDisplay();
+  closeSavingsGoalModal();
+}
+
+function updateSavingsDisplay() {
+  const display = document.getElementById('savingsGoalDisplay');
+  const progressBar = document.getElementById('savingsProgressBar');
+  const trend = document.getElementById('savingsTrend');
+  
+  if (savingsGoal > 0) {
+    display.textContent = `HKD ${savingsGoal.toLocaleString()}`;
+    const pct = Math.min((savingsBalance / savingsGoal) * 100, 100);
+    progressBar.style.width = pct + '%';
+    progressBar.classList.toggle('complete', pct >= 100);
+    trend.textContent = `已存 HKD ${savingsBalance.toLocaleString()} / 目標 HKD ${savingsGoal.toLocaleString()}`;
+  } else {
+    display.textContent = '未設定';
+    progressBar.style.width = '0%';
+    trend.textContent = '點擊設定你的儲蓄目標';
+  }
+}
+
+// ============ EXPORT CSV ============
+function exportTransactionsCSV() {
+  const headers = ['名稱', '金額', '付款方式', '類別', '月份', '年份'];
+  const rows = allTransactions.map(t => [
+    t.name,
+    t.amount,
+    t.channel === 'cathay' ? '國泰' : t.channel === 'hsbc' ? 'HSBC' : 'Alipay',
+    t.category,
+    t.month,
+    t.year
+  ]);
+  
+  const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `mkit-transactions-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ============ SWIPE TABS ============
