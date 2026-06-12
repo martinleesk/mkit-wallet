@@ -1126,11 +1126,11 @@ if ('serviceWorker' in navigator) {
       <div class="stat-card savings">
         <div class="stat-icon">🎯</div>
         <div class="stat-label">🎯 儲蓄目標</div>
-        <div class="stat-value green" id="savingsGoalDisplay">HKD ${savingsGoal.toLocaleString()}</div>
+        <div class="stat-value green" id="savingsGoalDisplay">未設定</div>
         <div class="savings-progress">
           <div class="savings-progress-bar" id="savingsProgressBar"></div>
         </div>
-        <div class="stat-trend" id="savingsTrend">已存 ${savingsBalance.toLocaleString()} / 目標 ${savingsGoal.toLocaleString()}</div>
+        <div class="stat-trend" id="savingsTrend">點擊設定你的儲蓄目標</div>
         <button class="btn-add" style="margin-top:8px;padding:4px 8px;font-size:10px" onclick="openSavingsGoalModal()">設定目標</button>
       </div>
     </div>
@@ -1772,6 +1772,39 @@ function updateStats() {
   document.getElementById('netCashflow').textContent = (net >= 0 ? '+' : '-') + 'HKD ' + Math.abs(net).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
   document.getElementById('netCashflow').className = 'stat-value ' + (net >= 0 ? 'positive' : 'negative');
   document.getElementById('savingsRate').textContent = savingsRate + '%';
+}
+
+// ============ CHART DATA FUNCTIONS ============
+function getCategoryData() {
+  const filtered = getFilteredTransactions();
+  const cats = {};
+  filtered.forEach(t => {
+    if (t.amount < 0) {
+      cats[t.category] = (cats[t.category] || 0) + Math.abs(t.amount);
+    }
+  });
+  const labels = Object.keys(cats);
+  const values = Object.values(cats);
+  return { labels, values };
+}
+
+function getMonthlyTrend() {
+  const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const expense = [];
+  const income = [];
+  
+  months.forEach(m => {
+    const monthTxs = allTransactions.filter(t => t.month === m);
+    let exp = 0, inc = 0;
+    monthTxs.forEach(t => {
+      if (t.amount < 0) exp += Math.abs(t.amount);
+      else inc += t.amount;
+    });
+    expense.push(exp);
+    income.push(inc);
+  });
+  
+  return { labels: months, expense, income };
 }
 
 // ============ CHARTS ============
