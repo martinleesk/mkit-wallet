@@ -1,8 +1,8 @@
 // MKiT Wallet PWA Service Worker
-const CACHE_NAME = 'mkit-wallet-v1';
+const CACHE_NAME = 'mkit-wallet-v2';
 const ASSETS_TO_CACHE = [
   '/mkit-wallet/',
-  '/mkit-wallet/mkit-wallet.html',
+  '/mkit-wallet/index.html',
   '/mkit-wallet/manifest.json',
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js'
 ];
@@ -67,7 +67,7 @@ self.addEventListener('fetch', (event) => {
           })
           .catch(() => {
             // Network failed, return offline fallback if available
-            return caches.match('/mkit-wallet/mkit-wallet.html');
+            return caches.match('/mkit-wallet/index.html');
           });
       })
   );
