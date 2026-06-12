@@ -31,7 +31,7 @@ if ('serviceWorker' in navigator) {
     --text-primary: #ffffff;
     --text-secondary: #888;
     --text-muted: #666;
-    --accent-teal: #00d4aa;
+    --accent: #00d4aa;
     --accent-red: #ff6b6b;
     --accent-yellow: #ffd93d;
     --accent-purple: #a855f7;
@@ -51,6 +51,60 @@ if ('serviceWorker' in navigator) {
     --text-muted: #999;
     --border-color: rgba(0,0,0,0.1);
     --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  }
+  
+  [data-theme="ocean"] {
+    --bg-primary: #0a1628;
+    --bg-secondary: #0f2240;
+    --bg-card: #1a3a5c;
+    --bg-card-hover: #1e4870;
+    --text-primary: #ffffff;
+    --text-secondary: #7eb8da;
+    --text-muted: #5a9aba;
+    --accent: #00d4aa;
+    --accent-red: #ff6b6b;
+    --accent-yellow: #ffd93d;
+    --accent-purple: #a855f7;
+    --accent-blue: #6bcbff;
+    --accent-green: #4ade80;
+    --border-color: rgba(107,203,255,0.15);
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+  
+  [data-theme="sunset"] {
+    --bg-primary: #1a0a0f;
+    --bg-secondary: #2a1118;
+    --bg-card: #3d1a24;
+    --bg-card-hover: #4d2030;
+    --text-primary: #ffffff;
+    --text-secondary: #d9a0a0;
+    --text-muted: #b98080;
+    --accent: #ff6b6b;
+    --accent-red: #ffd93d;
+    --accent-yellow: #ff9f43;
+    --accent-purple: #a855f7;
+    --accent-blue: #6bcbff;
+    --accent-green: #4ade80;
+    --border-color: rgba(255,107,107,0.15);
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+  
+  [data-theme="forest"] {
+    --bg-primary: #0a1a0f;
+    --bg-secondary: #0f2a18;
+    --bg-card: #1a3a24;
+    --bg-card-hover: #204830;
+    --text-primary: #ffffff;
+    --text-secondary: #a0d9b0;
+    --text-muted: #80b990;
+    --accent: #4ade80;
+    --accent-red: #ff6b6b;
+    --accent-yellow: #ffd93d;
+    --accent-purple: #a855f7;
+    --accent-blue: #6bcbff;
+    --accent-green: #00d4aa;
+    --border-color: rgba(74,222,128,0.15);
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
   }
   
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1294,6 +1348,31 @@ if ('serviceWorker' in navigator) {
   </div>
 </div>
 
+<!-- Add Investment Modal -->
+<div class="modal-overlay" id="addInvModal">
+  <div class="modal">
+    <div class="modal-title">📈 新增持仓</div>
+    <div class="form-group">
+      <label class="form-label">名稱/代碼</label>
+      <input type="text" class="form-input" id="invName" placeholder="例如：AAPL 或 蘋果">
+    </div>
+    <div class="form-group">
+      <label class="form-label">持股數量</label>
+      <input type="number" class="form-input" id="invShares" placeholder="例如：100">
+    </div>
+    <div class="form-group">
+      <label class="form-label">成本價 (HKD)</label>
+      <input type="number" class="form-input" id="invCost" placeholder="例如：150">
+    </div>
+    <div class="form-group">
+      <label class="form-label">現價 (HKD)</label>
+      <input type="number" class="form-input" id="invCurrent" placeholder="例如：175">
+    </div>
+    <button class="btn-primary" onclick="saveInvestment()">儲存</button>
+    <button class="btn-secondary" onclick="closeAddInvModal()">取消</button>
+  </div>
+</div>
+
 <script>
 // ============ DATA ============
 const allTransactions = [
@@ -1343,7 +1422,7 @@ function updateInvestmentStats() {
   const pnlEl = document.getElementById('invTotalPnL');
   
   if (investments.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)">暫無投資記錄</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:60px 20px;color:var(--text-muted)"><div style="font-size:48px;margin-bottom:16px">📊</div><div style="font-size:16px;font-weight:600;margin-bottom:8px">暫無投資記錄</div><div style="font-size:14px">點擊「+ 新增持仓」追蹤你的投資組合</div></td></tr>';
     totalEl.textContent = 'HKD 0';
     pnlEl.textContent = 'HKD 0 (0%)';
     return;
@@ -1420,18 +1499,16 @@ document.addEventListener('DOMContentLoaded', () => {
   buildBudgetGrid();
   buildCategoryLegend();
 });
+let currentTheme = 'dark';
+const themes = ['dark', 'light', 'ocean', 'sunset', 'forest'];
+const themeIcons = { 'dark': '🌙', 'light': '☀️', 'ocean': '🌊', 'sunset': '🌅', 'forest': '🌲' };
 
-// Theme
 function toggleTheme() {
-  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  const idx = themes.indexOf(currentTheme);
+  currentTheme = themes[(idx + 1) % themes.length];
   document.documentElement.setAttribute('data-theme', currentTheme);
-  document.getElementById('themeIcon').textContent = currentTheme === 'dark' ? '🌙' : '☀️';
-  
-  // Re-render charts with new colors
-  setTimeout(() => {
-    initCharts();
-    buildTransactionList();
-  }, 100);
+  document.getElementById('themeIcon').textContent = themeIcons[currentTheme];
+  initCharts(); // Re-init charts with new theme colors
 }
 
 // Greeting & Time
@@ -1505,9 +1582,18 @@ function toggleDateFilter() {
 }
 
 function handleSearch(query) {
-  searchQuery = query.toLowerCase();
+  searchQuery = query.toLowerCase().trim();
   currentPage = 1;
   buildTransactionList();
+  
+  // Show search result count
+  const filtered = getFilteredTransactions();
+  const searchCount = document.getElementById('txCount');
+  if (searchQuery) {
+    searchCount.textContent = `找到 ${filtered.length} 筆交易`;
+  } else {
+    searchCount.textContent = filtered.length + ' 筆交易';
+  }
 }
 
 // ============ GET FILTERED ============
@@ -1523,7 +1609,7 @@ function getFilteredTransactions() {
       const dateMonth = dateParts[1] + '月';
       if (t.year !== dateYear || t.month !== dateMonth) return false;
     }
-    if (searchQuery && !t.name.toLowerCase().includes(searchQuery) && !t.category.toLowerCase().includes(searchQuery)) return false;
+    if (searchQuery && !t.name.toLowerCase().includes(searchQuery) && !t.category.toLowerCase().includes(searchQuery) && !String(Math.abs(t.amount)).includes(searchQuery)) return false;
     return true;
   });
 }
@@ -1579,7 +1665,7 @@ function buildTransactionList() {
   });
   
   if (pageTx.length === 0) {
-    html = '<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-muted)">暫無交易記錄</td></tr>';
+    html = '<tr><td colspan="4" style="text-align:center;padding:60px 20px;color:var(--text-muted)"><div style="font-size:48px;margin-bottom:16px">📭</div><div style="font-size:16px;font-weight:600;margin-bottom:8px">暫無交易記錄</div><div style="font-size:14px">點擊右下角 + 按鈕新增第一筆交易</div></td></tr>';
   }
   
   txList.innerHTML = html;
@@ -1660,7 +1746,17 @@ function initCharts() {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { display: false }
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: isLight ? '#333' : '#fff',
+          titleColor: isLight ? '#fff' : '#333',
+          bodyColor: isLight ? '#fff' : '#333',
+          padding: 12,
+          cornerRadius: 8,
+          callbacks: {
+            label: (ctx) => ` HKD ${ctx.raw.toLocaleString()}`
+          }
+        }
       }
     }
   });
@@ -1701,6 +1797,16 @@ function initCharts() {
         legend: {
           position: 'top',
           labels: { color: textColor, usePointStyle: true, padding: 20 }
+        },
+        tooltip: {
+          backgroundColor: isLight ? '#333' : '#fff',
+          titleColor: isLight ? '#fff' : '#333',
+          bodyColor: isLight ? '#fff' : '#333',
+          padding: 12,
+          cornerRadius: 8,
+          callbacks: {
+            label: (ctx) => ` ${ctx.dataset.label}: HKD ${ctx.raw.toLocaleString()}`
+          }
         }
       },
       scales: {
@@ -1913,6 +2019,43 @@ function switchTab(tab) {
   
   toggleSidebar();
 }
+
+// ============ SWIPE TABS ============
+let tabSwipeStartX = 0;
+let tabSwipeStartY = 0;
+const tabOrder = ['overview', 'budget', 'transactions', 'investment', 'settings'];
+
+document.addEventListener('touchstart', (e) => {
+  tabSwipeStartX = e.touches[0].clientX;
+  tabSwipeStartY = e.touches[0].clientY;
+}, { passive: true });
+
+document.addEventListener('touchend', (e) => {
+  const diffX = e.changedTouches[0].clientX - tabSwipeStartX;
+  const diffY = e.changedTouches[0].clientY - tabSwipeStartY;
+  
+  // Only trigger if horizontal swipe > 50px and not vertical
+  if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
+    // Don't trigger if touching a button/input
+    if (e.target.closest('button, input, select, .modal, .fab')) return;
+    
+    const currentTab = tabOrder.find(t => {
+      const el = document.querySelector(`[onclick="switchTab('${t}')"]`);
+      return el && el.closest('.nav-item')?.classList.contains('active');
+    });
+    
+    if (currentTab) {
+      const idx = tabOrder.indexOf(currentTab);
+      if (diffX < 0 && idx < tabOrder.length - 1) {
+        // Swipe left → next tab
+        switchTab(tabOrder[idx + 1]);
+      } else if (diffX > 0 && idx > 0) {
+        // Swipe right → previous tab
+        switchTab(tabOrder[idx - 1]);
+      }
+    }
+  }
+}, { passive: true });
 
 // ============ SWIPE TO DELETE ============
 let swipeStartX = 0;
